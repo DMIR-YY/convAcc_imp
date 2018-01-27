@@ -99,9 +99,7 @@ void conv_core_syn(data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
                    data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
                    data_type_w b_buf_0[Tm],
                    data_type_w out_buf_0[Tm][OBUF_t][OBUF_t],
-                   int param_in[16],
-                   int r_offset,
-                   int c_offset ) {
+                   int param_in[16]) {
 
 #pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
 
@@ -134,7 +132,7 @@ void conv_core_syn(data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
         b_buf_0_tmp[i] = b_buf_0[i];
     }
 
-    convAcc1.conv_core_acc(in_buf_0, w_buf_0, b_buf_0_tmp, out_buf_0, param, r_offset, c_offset );
+    convAcc1.conv_core_acc(in_buf_0, w_buf_0, b_buf_0_tmp, out_buf_0, param);
 }
 
 

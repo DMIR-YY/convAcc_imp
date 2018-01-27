@@ -93,11 +93,14 @@ void conv_pool_layer(
                     // compute buffered data
                     for(int r_offset=0; r_offset < (OBUF_t>layer_param[5]?layer_param[5]:OBUF_t); r_offset+=Tr) {
                         for(int c_offset=0; c_offset < (IBUF_t>layer_param[5]?layer_param[5]:IBUF_t);c_offset+=Tc) {
-                            conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_param, r_offset, c_offset);
+                            conv_param[5] = r_offset;
+                            conv_param[6] = c_offset;
+                            conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_param);
                         }
                     }
                     //pool_core_syn(out_buf_0, out_buf_1, pool_engine_param_in);
 
+#if _C_DEBUG_MODE_
                     // read results out
                     convAcc1.output_res(out_buf_0, temp_out_1_1, 0, n, m, r, c, layer_param[0], layer_param[2], layer_param[5], layer_param[6], 1);
                     cout << "out buf 0 data :" << endl;
@@ -113,6 +116,7 @@ void conv_pool_layer(
                         conv_out << endl;
                     }
                     conv_out.close();
+#endif
                 }
             }
         }

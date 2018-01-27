@@ -312,13 +312,13 @@ public:
         data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
         data_type_w b_buf_0[Tm],
         data_type_w out_buf_0[Tm][OBUF_t][OBUF_t],
-        int param[16],
-        int r_offset,
-        int c_offset ) {
+        int param[16]) {
     
         data_type_w out_buf_tmp[Tm][Tr][Tc];
 #pragma HLS ARRAY_PARTITION variable=out_buf_tmp complete dim=1
-    
+
+        int r_offset = param[5];
+        int c_offset = param[6];
         conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param[0], param[1], param[2], param[3], param[4], r_offset, c_offset);
     
         for(int j =0; j < Tr; j++) {
