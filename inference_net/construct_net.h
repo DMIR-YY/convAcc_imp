@@ -39,6 +39,7 @@ void conv_pool_layer(
                     convAcc1.w_buf_load(w_buf_0, conv_weight_mem_port, 0, n, m, layer_param[1], layer_param[0], layer_param[2]);
                     convAcc1.in_buf_load(in_buf_0, temp_out_0_1, 0, n, r, c, layer_param[7], layer_param[1], layer_param[8], layer_param[3], layer_param[4], layer_param[7]);
 
+#if _C_DEBUG_MODE_
                     ofstream conv_out;
                     conv_out.open("in_buf_data.txt", ios::app);
                     conv_out <<"conv input: "<< endl;
@@ -53,7 +54,6 @@ void conv_pool_layer(
                     }
                     conv_out.close();
 
-#if _C_DEBUG_MODE_
                     cout << "conv acc round : "  << acc_call_rounds << endl;
                     cout << "b buf 0 data :" << endl;
                     for (int i =0; i<Tm && i<layer_param[2]; i++) {
@@ -121,9 +121,9 @@ void conv_pool_layer(
             }
         }
     }
-
-    cout << "acc call round = " << acc_call_rounds << endl;
 }
+
+
 
 void   inference_net(
    data_type_w *conv_weight_port,

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include "activation_functions.h"
+#include "config.h"
 
 #if _C_DEBUG_MODE_
 #include <algorithm>
@@ -58,6 +59,22 @@ public:
                         for(int tn=0; tn<Tn; tn++){
 #pragma HLS UNROLL
                             out_buf[tn][tr][tc] = (i==0&&j==0)?in_buf[tn][S*tr][S*tc]:((out_buf[tn][tr][tc]>in_buf[tn][S*tr+i][S*tc+j])?out_buf[tn][tr][tc]:in_buf[tn][S*tr+i][S*tc+j]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    void pool_engine2(T in_buf[][OBUF_t][OBUF_t], G out_buf[][OBUF_t][OBUF_t], int S, int n, int r, int c, int K, int R, int C, int TR, int TC, int i_offset, int o_offset){
+        for(int i=0; i<K; i++){
+            for(int j=0; j<K; j++){
+                for(int tr=0; tr<Tr&&tr+r<R&&(S * tr + i)<TR; tr++){
+                    for(int tc=0; tc<Tc&&tc+c<C&&(S * tc + j)<TC; tc++){
+#pragma HLS PIPELINE
+                        for(int tn=0; tn<Tn; tn++){
+#pragma HLS UNROLL
+                            out_buf[tn][tr + o_offset][tc] = (i==0&&j==0)?in_buf[tn][S*tr + i_offset][S*tc]:((out_buf[tn][tr+o_offset][tc]>in_buf[tn][S*tr+i+i_offset][S*tc+j])?out_buf[tn][tr+o_offset][tc]:in_buf[tn][S*tr+i+i_offset][S*tc+j]);
                         }
                     }
                 }
@@ -209,5 +226,16 @@ public:
 #endif
 #endif
     }
+
+#if _ACC_MODE_
+    void mpool_core_acc(
+            T in_buf[Tm][OBUF_t][OBUF_t],
+            G out_buf[Tm][OBUF_t][OBUF_t],
+            int param[16]){
+
+            pool_engine2(in_buf, out_buf, param[0], param[1], param[2], param[3], param[4], param[5],
+                        param[6], param[7], param[8], param[9], param[10]);
+    }
+#endif
 };
 #endif
