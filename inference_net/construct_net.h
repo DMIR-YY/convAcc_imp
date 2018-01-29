@@ -10,17 +10,17 @@ using namespace std;
 
 
 void conv_pool_layer(
-        int layer_param[16],
-        int conv_param[16],
-        int pool_param[16],
-        data_type_w *conv_weight_mem_port,
-        data_type_w *conv_bias_mem_port,
-        data_type_w *temp_out_0_1,
-        data_type_w *temp_out_1_1,
-        data_type_w in_buf_0[][IBUF_t][IBUF_t],
-        data_type_w w_buf_0[][Tm][WBUF_t][WBUF_t],
-        data_type_w b_buf_0[],
-        data_type_w out_buf_0[][OBUF_t][OBUF_t]){
+    int layer_param[16],
+    int conv_param[16],
+    int pool_param[16],
+    data_type_w *conv_weight_mem_port,
+    data_type_w *conv_bias_mem_port,
+    data_type_w *temp_out_0_1,
+    data_type_w *temp_out_1_1,
+    data_type_w in_buf_0[][IBUF_t][IBUF_t],
+    data_type_w w_buf_0[][Tm][WBUF_t][WBUF_t],
+    data_type_w b_buf_0[],
+    data_type_w out_buf_0[][OBUF_t][OBUF_t]){
 
     int acc_call_rounds  = 0;
     for(int r = 0; r < layer_param[5]&&r<IBUF_t; r += IBUF_t) {
@@ -35,17 +35,16 @@ void conv_pool_layer(
                     conv_param[2] = r;
                     conv_param[3] = c;
 
-                    convAcc1.b_buf_load(b_buf_0, conv_bias_mem_port, 0, m);
-                    convAcc1.w_buf_load(w_buf_0, conv_weight_mem_port, 0, n, m, layer_param[1], layer_param[0], layer_param[2]);
-                    convAcc1.in_buf_load(in_buf_0, temp_out_0_1, 0, n, r, c, layer_param[7], layer_param[1], layer_param[8], layer_param[3], layer_param[4], layer_param[7]);
+                    convAcc1.b_buf_load(b_buf_0, conv_bias_mem_port, layer_param[11], m);
+                    convAcc1.w_buf_load(w_buf_0, conv_weight_mem_port, layer_param[10], n, m, layer_param[1], layer_param[0], layer_param[2]);
+                    convAcc1.in_buf_load(in_buf_0, temp_out_0_1, 0, n, r, c, layer_param[7], layer_param[1], layer_param[8], layer_param[3], layer_param[4], layer_param[0]);
 
-#if _C_DEBUG_MODE_
                     ofstream conv_out;
                     conv_out.open("in_buf_data.txt", ios::app);
                     conv_out <<"conv input: "<< endl;
                     for (int i = 0; i < layer_param[0]; i++) {
-                        for (int j = 0; j < layer_param[5]+layer_param[8]*2; j++) {
-                            for(int k = 0; k < layer_param[6]+layer_param[8]*2; k++){
+                        for (int j = 0; j < layer_param[3]+layer_param[8]*2; j++) {
+                            for(int k = 0; k < layer_param[4]+layer_param[8]*2; k++){
                                 conv_out << in_buf_0[i][j][k] << " ";
                             }
                             conv_out << endl;
@@ -54,6 +53,7 @@ void conv_pool_layer(
                     }
                     conv_out.close();
 
+#if _C_DEBUG_MODE_
                     cout << "conv acc round : "  << acc_call_rounds << endl;
                     cout << "b buf 0 data :" << endl;
                     for (int i =0; i<Tm && i<layer_param[2]; i++) {
@@ -100,7 +100,6 @@ void conv_pool_layer(
                     }
                     //pool_core_syn(out_buf_0, out_buf_1, pool_engine_param_in);
 
-#if _C_DEBUG_MODE_
                     // read results out
                     convAcc1.output_res(out_buf_0, temp_out_1_1, 0, n, m, r, c, layer_param[0], layer_param[2], layer_param[5], layer_param[6], 1);
                     cout << "out buf 0 data :" << endl;
@@ -116,14 +115,13 @@ void conv_pool_layer(
                         conv_out << endl;
                     }
                     conv_out.close();
-#endif
                 }
             }
         }
     }
+
+    cout << "acc call round = " << acc_call_rounds << endl;
 }
-
-
 
 void   inference_net(
    data_type_w *conv_weight_port,

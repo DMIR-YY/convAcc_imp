@@ -35,7 +35,7 @@ void conv_layer_new(
 
 max_pool_acc<data_type, data_type_w, data_type_o, 32, 16, 16, 2, 2> maxPoolAcc1;
 
-#if _LAYER_MODE_
+//#if _LAYER_MODE_
 void max_pool_layer_new(
         int R_in,
         int C_in,
@@ -52,7 +52,7 @@ void max_pool_layer_new(
     maxPoolAcc1.max_pool_layer_acc(R_in, C_in, N, K, R, C, S, P, act, in_data_1, out_data_1);
 
 }
-#endif
+//#endif
 /*
 void conv_core_syn(data_type_w in_buf_0[8][128][128],
                    data_type_w w_buf_0[8][32][16][16],
