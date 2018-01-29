@@ -45,7 +45,7 @@ int main() {
    unsigned int out_size_1_1 = (20480) * sizeof(data_type_o);
 
 //    data_type_w in_buf_0[8][15*5+11][15*5 + 11];
-    data_type_w in_buf_0[8][128][128];
+    data_type_w in_buf_0[16][128][128];
     data_type_w in_buf_1[8][15*5+11][15*5 + 11];
     data_type_w w_buf_0[8][32][16][16];
     data_type_w w_buf_1[8][32][11][11];
@@ -151,7 +151,7 @@ int main() {
       for (int j = 0; j < 28; j++) {
          for (int k = 0; k < 28; k++) {
             temp_out_0_1[in_data_size] = (data_type)image_orig[i*28*28 + 28*j + k];
-            in_buf_0[i][j][k] = (data_type)image_orig[i*28*28 + j*28 + k];
+            //in_buf_0[i][j][k] = (data_type)image_orig[i*28*28 + j*28 + k];
 	    in_data_size++;
          }
 
@@ -293,109 +293,69 @@ int dir_control_1[4] = {1, 0, 0, 1};
 int dir_control_2[4] = {1, 1, 0, 1};
 int dir_control_3[4] = {1, 0, 0, 0};
 // param order = {n, k, m, Rin, Cin, Rout, Cout, S, P, act}
-int conv_param_1[16] = {1, 5,  6,  28, 28, 28, 28,  1, 2, 1, 0,  0, 0, 0, 1, 1};
-int pool_param_1[16] = {28, 28, 6,  2, 14, 14, 2,  0, 1, 0, 0,  0, 0, 0, 0, 0};
-int conv_param_2[16] = {6,  5, 16, 14, 14, 10, 10, 1, 0, 1, 150,6, 0, 0, 1, 1};
-int pool_param_2[16] = {10, 10, 16, 2, 5,  5,  2,  0, 1, 0, 0,  0, 0, 0, 0, 0};
-int conv_param_3[16] = {16, 5, 10, 5,  5,  1,  1,  5, 0, 1, 0,  0, 0, 0, 1, 1};
+int conv_param_1[16] = {1, 5, 6, 28, 28, 28, 28, 1, 2, 1, 0, 0, 0, 0, 1, 1};
+int pool_param_1[16] = {28, 28, 6, 2, 14, 14, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+int conv_param_2[16] = {6, 5, 16, 14, 14, 10, 10, 1, 0, 1, 150, 6, 0, 0, 1, 1};
+int pool_param_2[16] = {10, 10, 16, 2, 5, 5, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
+int conv_param_3[16] = {16, 5, 10, 5, 5, 1, 1, 5, 0, 1, 0, 0, 0, 0, 1, 1};
 
-int conv_engine_param_in[16] = {1, 0/*n*/, 0/*r*/, 0/*c*/, 5, 28, 28, 1, 1, 0, 0, 0, 0, 0, 1, 0};
+int conv_engine_param_in[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1, 1, 0, 0, 0, 0, 0, 1, 0};
 int pool_engine_param_in[16] = {2, 0, 0, 0, 2, 14, 14, 16, 16, 0, 0, 0, 0, 0, 0, 0};
+int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1, 1, 0, 0, 0, 0, 0, 1, 0};
 //    inference_net( dir_control_1, conv_param_1, pool_param_1, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
 
-    /*
-    // conv_layer_1
-    for(int r = 0; r < conv_param_1[5]; r += 16) {
-        for (int c = 0; c < conv_param_1[6]; c += 16) {
-            for (int m = 0; m < conv_param_1[2]; m += 32) {
-                for (int n = 0; n < conv_param_1[0]; n += 8) {
-                    // fill in buffer
-                    conv_engine_param_in[1] = n;
-                    conv_engine_param_in[2] = r;
-                    conv_engine_param_in[3] = c;
-                    convAcc1.b_buf_load(b_buf_0, conv_bias_mem_port, 0, m);
-                    convAcc1.in_buf_load(in_buf_0, temp_out_0_1, 0, n, r, c, conv_param_1[7], conv_param_1[1], conv_param_1[8], conv_param_1[3], conv_param_1[4], conv_param_1[7]);
-                    convAcc1.w_buf_load(w_buf_0, conv_weight_mem_port, 0, n, m, conv_param_1[1], conv_param_1[7], conv_param_1[0]);
-                    // compute buffered data
-                    conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_engine_param_in);
-//                    pool_core_syn(out_buf_0, out_buf_1, pool_engine_param_in);
-                    // read results out
-                    convAcc1.output_res(out_buf_0, temp_out_1_1, 0, n, m, r, c, 1, 6, 28, 28, 1);
-                }
-            }
-        }
-    }
-*/
+    //conv_1
     conv_pool_layer(
-            conv_param_1,
-            conv_engine_param_in,
-            pool_engine_param_in,
-            conv_weight_mem_port,
-            conv_bias_mem_port,
-            temp_out_0_1,
-            temp_out_1_1,
-            in_buf_0,
-            w_buf_0,
-            b_buf_0,
-            out_buf_0);
+        conv_param_1,
+        conv_engine_param_in,
+        pool_engine_param_in,
+        conv_weight_mem_port,
+        conv_bias_mem_port,
+        temp_out_0_1,
+        temp_out_1_1,
+        in_buf_0,
+        w_buf_0,
+        b_buf_0,
+        out_buf_0);
 
-/*
-    cout<< "b buf 0 data" << endl;
-    for (int i =0; i<6; i++) {
-        cout << b_buf_0[i] << "  ";
-    }
-    cout << endl;
-    cout << endl;
+    //pool_1
+    max_pool_layer_new(pool_param_1[0], pool_param_1[1], pool_param_1[2],
+        pool_param_1[3], pool_param_1[4], pool_param_1[5], pool_param_1[6],
+        pool_param_1[7], pool_param_1[8],  temp_out_1_1,  temp_out_0_1);
 
-    cout << "in buf 0 data" << endl;
-    for (int i =0; i<1; i++){
-        for (int j=0; j<28; j++){
-            for(int k=0; k< 28; k++) {
-                cout << in_buf_0[i][j][k] << " ";
-            }
-            cout << endl;
-        }
-        cout << endl;
-    }
-    cout << endl;
-    cout << endl;
+    //conv_2
+    conv_pool_layer(
+        conv_param_2,
+        conv_engine_param_in,
+        pool_engine_param_in,
+        conv_weight_mem_port,
+        conv_bias_mem_port,
+        temp_out_0_1,
+        temp_out_1_1,
+        in_buf_0,
+        w_buf_0,
+        b_buf_0,
+        out_buf_0);
 
-    cout<< "w buf 0 data" << endl;
-    for(int a=0; a<1; a++) {
-        for (int i = 0; i < 6; i++) {
-            for (int j = 0; j < 5; j++) {
-                for (int k = 0; k < 5; k++) {
-                    cout << w_buf_0[a][i][j][k] << "  ";
-                }
-                cout << endl;
-            }
-            cout << endl;
-        }
-        cout << endl;
-    }
-    cout << endl;
-    cout << endl;
+    //pool_2
+    max_pool_layer_new(pool_param_2[0], pool_param_2[1], pool_param_2[2],
+        pool_param_2[3], pool_param_2[4], pool_param_2[5], pool_param_2[6],
+        pool_param_2[7], pool_param_2[8],  temp_out_1_1,  temp_out_0_1);
 
-    cout << "conv engine params" << endl;
-    for (int i=0; i<16; i++){
-        cout << conv_engine_param_in[i] << "  ";
-    }
-    cout << endl;
-*/
-/*
-    cout << "temp out 1 1 data" << endl;
-    for (int i =0; i<6; i++){
-        for (int j=0; j<28; j++){
-            for(int k=0; k< 28; k++) {
-                cout << temp_out_1_1[i*28*28 +j*28 + k] << " ";
-            }
-            cout << endl;
-        }
-        cout << endl;
-    }
-    cout << endl;
-    cout << endl;
-*/
+    //fc_1
+    conv_pool_layer(
+        conv_param_3,
+        fc_engine_param_in,
+        pool_engine_param_in,
+        fc_weight_mem_port,
+        fc_bias_mem_port,
+        temp_out_0_1,
+        temp_out_1_1,
+        in_buf_0,
+        w_buf_0,
+        b_buf_0,
+        out_buf_0);
+
 /* Bram interfaced inference_net
 inference_net( dir_control_1, conv_param_1, pool_param_1, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
 inference_net( dir_control_1, conv_param_2, pool_param_2, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);

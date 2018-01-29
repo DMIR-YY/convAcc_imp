@@ -51,6 +51,7 @@ public:
             buf[i] = *(layer_bias + bias_offset + i + m);
         }
     }
+
     // Load input data
     void in_buf_load(T buf[][IBUF_t][IBUF_t],T *in_data_1, int in_offset, int n, int r, int c, int S, int K, int P, int R_IN, int C_IN, int N) {
        for (int j = r * S - P; j < (r + (IBUF_t>R_IN?R_IN:IBUF_t) - 1) * S + K - P; j++) {
@@ -67,6 +68,8 @@ public:
 			}
 		}
 	}
+
+
     // Load weights to weight buffer
    void w_buf_load(W buf[][Tm][WBUF_t][WBUF_t], W *layer_weights, int weight_offset, int n, int m, int K, int N, int M){
        for(int k1 = 0; k1 < K; k1++){
@@ -102,6 +105,8 @@ public:
             }
         }
     }
+
+
     // Ouput out_buf data to output interface
     void output_res(G out_buf[][OBUF_t][OBUF_t], G *out_data_1, int out_offset, int n, int m, int r, int c, int N, int M, int R_OUT, int C_OUT, bool act){
         if (n >= N - Tn) {
@@ -303,26 +308,27 @@ public:
     
 #if _ACC_MODE_
    void conv_core_acc( 
-        T in_buf_0[Tn][IBUF_t][IBUF_t],
-        W w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
-        W b_buf_0[Tm],
-        G out_buf_0[Tm][OBUF_t][OBUF_t],
+        data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
+        data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
+        data_type_w b_buf_0[Tm],
+        data_type_w out_buf_0[Tm][OBUF_t][OBUF_t],
         int param[16]) {
     
         data_type_w out_buf_tmp[Tm][Tr][Tc];
 #pragma HLS ARRAY_PARTITION variable=out_buf_tmp complete dim=1
-
+        
         int r_offset = param[5];
         int c_offset = param[6];
+
         conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param[0], param[1], param[2], param[3], param[4], r_offset, c_offset);
     
-        for(int j =0; j < Tr; j++) {
-            for(int k=0; k < Tc; k++) {
+        for(int i=0; i < Tm; i++) {
+            for(int j =0; j < Tr; j++) {
+                for(int k=0; k < Tc; k++) {
 #pragma HLS PIPELINE 
-                for(int i=0; i < Tm; i++) {
                     out_buf_0[i][j+r_offset][k+c_offset] = out_buf_tmp[i][j][k];
                 }
-           }
+            }
         }
     }
 #endif
