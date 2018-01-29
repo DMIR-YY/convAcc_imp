@@ -49,7 +49,7 @@ csim_design -clean -argv {net_weights.txt, 3.bmp, val.txt, net_mean.txt}
 
 csynth_design
 
-#export_design -flow syn -rtl verilog -format ip_catalog
+export_design -flow syn -rtl verilog -format ip_catalog
 
 #cosim_design -argv {net_weights.txt, 3.bmp, val.txt, net_mean.txt} -trace_level none -rtl verilog -tool xsim
 

@@ -47,7 +47,7 @@ int main() {
 //    data_type_w in_buf_0[8][15*5+11][15*5 + 11];
     data_type_w in_buf_0[8][128][128];
     data_type_w in_buf_1[8][15*5+11][15*5 + 11];
-    data_type_w w_buf_0[8][32][16][16];
+    data_type_w w_buf_0[8][32][32][32];
     data_type_w w_buf_1[8][32][11][11];
     data_type_w b_buf_0[32];
     data_type_w b_buf_1[32];

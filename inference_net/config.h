@@ -35,7 +35,7 @@ typedef float data_type_o;
 
 // Accelerator buffer size configuration
 const int IBUF_t = 128;
-const int WBUF_t = 16;
+const int WBUF_t = 32;
 const int OBUF_t = 32;
 const int Tm = 32;
 const int Tn = 8;
