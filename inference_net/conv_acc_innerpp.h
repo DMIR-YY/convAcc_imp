@@ -322,10 +322,10 @@ public:
 
         conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param[0], param[1], param[2], param[3], param[4], r_offset, c_offset);
     
-        for(int i=0; i < Tm; i++) {
-            for(int j =0; j < Tr; j++) {
-                for(int k=0; k < Tc; k++) {
-#pragma HLS PIPELINE 
+        for(int j =0; j < Tr; j++) {
+            for(int k=0; k < Tc; k++) {
+#pragma HLS PIPELINE
+                for(int i=0; i < Tm; i++) {
                     out_buf_0[i][j+r_offset][k+c_offset] = out_buf_tmp[i][j][k];
                 }
             }

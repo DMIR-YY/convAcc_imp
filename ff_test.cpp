@@ -322,7 +322,7 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
     max_pool_layer_new(pool_param_1[0], pool_param_1[1], pool_param_1[2],
         pool_param_1[3], pool_param_1[4], pool_param_1[5], pool_param_1[6],
         pool_param_1[7], pool_param_1[8],  temp_out_1_1,  temp_out_0_1);
-
+/*
     //conv_2
     conv_pool_layer(
         conv_param_2,
@@ -355,7 +355,7 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
         w_buf_0,
         b_buf_0,
         out_buf_0);
-
+*/
 /* Bram interfaced inference_net
 inference_net( dir_control_1, conv_param_1, pool_param_1, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
 inference_net( dir_control_1, conv_param_2, pool_param_2, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
