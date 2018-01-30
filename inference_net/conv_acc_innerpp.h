@@ -84,7 +84,8 @@ public:
 		}
 	}
     // Convolution computation kernel
-    void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int r_offset, int c_offset){
+    void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc],
+                     int S, int n, int r, int c, int K, int TR, int TC, int r_offset, int c_offset){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
                 for(int tr=0; tr<Tr; tr++){
@@ -320,7 +321,7 @@ public:
         int r_offset = param[5];
         int c_offset = param[6];
 
-        conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param[0], param[1], param[2], param[3], param[4], r_offset, c_offset);
+        conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param[0], param[1], param[2], param[3], param[4], param[7], param[8], r_offset, c_offset);
     
         for(int j =0; j < Tr; j++) {
             for(int k=0; k < Tc; k++) {

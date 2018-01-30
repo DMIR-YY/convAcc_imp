@@ -28,7 +28,6 @@ void conv_pool_layer(
             for (int m = 0; m < layer_param[2]; m += Tm) {
                 for (int n = 0; n < layer_param[0]; n += Tn) {
 
-                    acc_call_rounds++;
 
                     // fill in buffer
                     conv_param[1] = n;
@@ -54,7 +53,6 @@ void conv_pool_layer(
                     }
                     conv_out.close();
 
-                    cout << "conv acc round : "  << acc_call_rounds << endl;
                     cout << "b buf 0 data :" << endl;
                     for (int i =0; i<Tm && i<layer_param[2]; i++) {
                         cout << b_buf_0[i] << "  ";
@@ -90,12 +88,19 @@ void conv_pool_layer(
                     cout << endl;
 #endif
 
+#if _C_DEBUG_MODE_
+                    cout << "conv layer parameters :" << endl;
+                    for(int i =0; i<16; i++){cout << layer_param[i] << "  ";} cout << endl;
+#endif
                     // compute buffered data
                     for(int r_offset=0; r_offset < (OBUF_t>layer_param[5]?layer_param[5]:OBUF_t); r_offset+=Tr) {
-                        for(int c_offset=0; c_offset < (IBUF_t>layer_param[5]?layer_param[5]:IBUF_t);c_offset+=Tc) {
+                        for(int c_offset=0; c_offset < (IBUF_t>layer_param[6]?layer_param[6]:IBUF_t);c_offset+=Tc) {
+                            acc_call_rounds++;
                             conv_param[5] = r_offset;
                             conv_param[6] = c_offset;
+                            for(int i =0; i<16; i++){cout << conv_param[i] << "  ";} cout << endl;
                             conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_param);
+                            cout << "acc call round = " << acc_call_rounds << endl;
                         }
                     }
                     //pool_core_syn(out_buf_0, out_buf_1, pool_engine_param_in);
@@ -122,7 +127,6 @@ void conv_pool_layer(
         }
     }
 
-    cout << "acc call round = " << acc_call_rounds << endl;
 }
 
 void   inference_net(
