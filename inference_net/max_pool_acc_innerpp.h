@@ -16,39 +16,39 @@ template <typename T, typename W, typename G, int Tn, int Tr, int Tc, int S_max,
 class max_pool_acc {
 
 private:
-	int pool_layer_number;
+    int pool_layer_number;
 
 public:
-	max_pool_acc() : pool_layer_number(0) {pool_layer_number = 0;};
+    max_pool_acc() : pool_layer_number(0) {pool_layer_number = 0;};
 
-	////------------------------------C++ debugging functions---------------------------------------////
-	// Reset output buffer
-	void out_buf_reset(G buf[][Tr][Tc]){
+    ////------------------------------C++ debugging functions---------------------------------------////
+    // Reset output buffer
+    void out_buf_reset(G buf[][Tr][Tc]){
         for(int i = 0; i < Tn; i++){
             for(int j = 0; j < Tr; j++){
                 for(int k = 0; k < Tc; k++){
                     buf[i][j][k] = G(0);
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
     ////-----------------------------Accelerator Functions---------------------------------------////
     // Load input data
     void in_buf_load(T buf[][(Tr-1)*S_max + K_max][(Tc-1)*S_max + K_max],T *in_data_1, int n, int r, int c, int S, int K, int P, int R, int C, int N, int R_IN, int C_IN, int TR, int TC) {
         for (int j = r * S - P; j < r * S + TR - P; j++) {
             for (int k = c * S - P; k < c * S + TC - P; k++) {
 #pragma HLS PIPELINE
-        		 for (int i = 0; i < Tn; i+=1){
+                 for (int i = 0; i < Tn; i+=1){
 #pragma HLS UNROLL
                     if ((n + Tn > N && i + n + 0 >= N ) || j < 0 || j >= (R_IN - 2 * P) || k < 0 || k >= (C_IN - 2 * P)) {
                         buf[i + 0][j - r * S + P][k - c * S + P] = T(0);
                     }else {
                         buf[i + 0][j - r * S + P][k - c * S + P] = *(in_data_1 + (i+n)/1 * (R_IN - 2 * P) * (C_IN - 2 * P) + j * (C_IN - 2 * P) + k);
                     }
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
     // Max pooling computation kernel
     void pool_engine(T in_buf[][(Tr-1)*S_max + K_max][(Tc-1)*S_max + K_max], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int R, int C, int TR, int TC){
         for(int i=0; i<K; i++){
@@ -66,7 +66,7 @@ public:
         }
     }
 
-    void pool_engine2(T in_buf[][OBUF_t][OBUF_t], G out_buf[][OBUF_t][OBUF_t], int S, int n, int r, int c, int K, int R, int C, int TR, int TC, int i_offset, int o_offset){
+    void pool_engine2(T in_buf[][OBUF_t][OBUF_t], G out_buf[][OBUF_t][OBUF_t], int S, int n, int r, int c, int K, int R, int C, int TR, int TC, int r_offset, int c_offset){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
                 for(int tr=0; tr<Tr&&tr+r<R&&(S * tr + i)<TR; tr++){
@@ -74,7 +74,7 @@ public:
 #pragma HLS PIPELINE
                         for(int tn=0; tn<Tn; tn++){
 #pragma HLS UNROLL
-                            out_buf[tn][tr + o_offset][tc] = (i==0&&j==0)?in_buf[tn][S*tr + i_offset][S*tc]:((out_buf[tn][tr+o_offset][tc]>in_buf[tn][S*tr+i+i_offset][S*tc+j])?out_buf[tn][tr+o_offset][tc]:in_buf[tn][S*tr+i+i_offset][S*tc+j]);
+                            out_buf[tn][tr][tc] = (i==0&&j==0)?in_buf[tn][S*tr + r_offset][S*tc + c_offset]:((out_buf[tn][tr][tc]>in_buf[tn][S*tr+i + r_offset][S*tc+j + c_offset])?out_buf[tn][tr][tc]:in_buf[tn][S*tr+i + r_offset][S*tc+j + c_offset]);
                         }
                     }
                 }
@@ -82,18 +82,18 @@ public:
         }
     }
     // Ouput out_buf data to output interface
-    void output_res(G out_buf[][Tr][Tc],G *out_data_1, int n, int r, int c, int N, int R, int C, bool act){
-        for (int j = r; j < r + Tr && j < R; j++) {
-            for (int k = c; k < c + Tc && k < C; k++) {
-                for (int i = 0; i < Tn && i < N - n; i += 1) {
+    void output_res(G out_buf[][OBUF_t][OBUF_t],G *out_data_1, int n, int r, int c, int N, int R, int C, bool act){
+        for (int j = r; j < r + OBUF_t && j < r + Tr && j < R; j++) {
+            for (int k = c; k < c + OBUF_t && k < c + Tc && k < C; k++) {
+                for (int i = n; i <  n + Tn && i < N; i += 1) {
 #pragma HLS PIPELINE
                         if (act) {
-                        	if (i + 0 < N - n)
-                            	*(out_data_1 + ((i+n)/1) * R * C + j * C + k) = relu(out_buf[i + 0][j - r][k - c]);
+                            if (i + 0 < N)
+                                *(out_data_1 + (i/1) * R * C + j * C + k) = relu(out_buf[i + 0 - n][j - r][k - c]);
                         }
                         else {
-                        	if (i + 0 <N)
-                            	*(out_data_1+ (i/1) * R * C + j * C + k) = out_buf[i + 0 - n][j - r][k - c];
+                            if (i + 0 < N)
+                                *(out_data_1 + (i/1) * R * C + j * C + k) = out_buf[i + 0 - n][j - r][k - c];
                         }
                     }
                 }
@@ -151,65 +151,65 @@ public:
                 TC=((c * S + (Tc - 1) * S + K)>C_IN?(C_IN - c * S):((Tc - 1) * S + K));
                     for(int n = 0; n < N; n += 2*Tn){
    //--------------------------Load input B W D in ping-pong manner-------------------------//
-						while (in_buf_0_empty | in_buf_1_empty) {
-							if (loadbufPtr == 1) {
-                    			cout << "loading input buffer 1...." << endl;
-                        		// load input data
-                        		in_buf_load(in_buf_1, in_data_1, n+Tn, r, c, S, K, P, R, C, N, R_IN, C_IN, TR, TC);
-                        		in_buf_1_empty = 0;
-                        		cout << "buffer 1 full" << endl;
-                        		loadbufPtr = 0;
-                        	} else {
-                    			cout << "loading input buffer 0...." << endl;
-                        		// load input data
-                        		in_buf_load(in_buf_0, in_data_1, n, r, c, S, K, P, R, C, N, R_IN, C_IN, TR, TC);
-                        		in_buf_0_empty = 0;
-                        		cout << "buffer 0 full" << endl;
-                        		loadbufPtr = 1;
-							}
+                        while (in_buf_0_empty | in_buf_1_empty) {
+                            if (loadbufPtr == 1) {
+                                cout << "loading input buffer 1...." << endl;
+                                // load input data
+                                in_buf_load(in_buf_1, in_data_1, n+Tn, r, c, S, K, P, R, C, N, R_IN, C_IN, TR, TC);
+                                in_buf_1_empty = 0;
+                                cout << "buffer 1 full" << endl;
+                                loadbufPtr = 0;
+                            } else {
+                                cout << "loading input buffer 0...." << endl;
+                                // load input data
+                                in_buf_load(in_buf_0, in_data_1, n, r, c, S, K, P, R, C, N, R_IN, C_IN, TR, TC);
+                                in_buf_0_empty = 0;
+                                cout << "buffer 0 full" << endl;
+                                loadbufPtr = 1;
+                            }
                        }
                        loadbufPtr = 0;
   //------------------------------compute buffered data -----------------------------------//
-                    	while (!in_buf_0_empty | !in_buf_1_empty) {
-                    		if (combufPtr == 1) {
-                    			cout << "computing input buffer 1...." << endl;
-                        		pool_engine(in_buf_1, out_buf_1, S, n+Tn, r, c, K, R, C, TR, TC);
-                    			out_buf_1_empty = 0;
-                    			in_buf_1_empty = 1;
-                    			combufPtr = 0;
-                    			cout << "buffer 1 computed" << endl;
-                    		} else {
-                    			cout << "computing input buffer 0...." << endl;
-                        		pool_engine(in_buf_0, out_buf_0, S, n, r, c, K, R, C, TR, TC);
-                    			out_buf_0_empty = 0;
-                    			in_buf_0_empty = 1;
-                    			combufPtr = 1;
-                    			cout << "buffer 0 computed" << endl;
-							}
+                        while (!in_buf_0_empty | !in_buf_1_empty) {
+                            if (combufPtr == 1) {
+                                cout << "computing input buffer 1...." << endl;
+                                pool_engine(in_buf_1, out_buf_1, S, n+Tn, r, c, K, R, C, TR, TC);
+                                out_buf_1_empty = 0;
+                                in_buf_1_empty = 1;
+                                combufPtr = 0;
+                                cout << "buffer 1 computed" << endl;
+                            } else {
+                                cout << "computing input buffer 0...." << endl;
+                                pool_engine(in_buf_0, out_buf_0, S, n, r, c, K, R, C, TR, TC);
+                                out_buf_0_empty = 0;
+                                in_buf_0_empty = 1;
+                                combufPtr = 1;
+                                cout << "buffer 0 computed" << endl;
+                            }
                        }
                        combufPtr = 0;
   //---------------------------transfer output data----------------------------------------//
-                    	while (!out_buf_0_empty | !out_buf_1_empty) {
-                    		if (resbufPtr == 1) {
-                    			cout << "output buffer 1...." << endl;
-                    			// transfer output data
-                    			output_res(out_buf_1, out_data_1, n+Tn, r, c, N, R, C, act);
-                    			out_buf_1_empty = 1;
-                    			resbufPtr = 0;
-                    			cout << "buffer 1 res" << endl;
-                    		} else {
-                    			cout << "output buffer 0...." << endl;
-                    			// transfer output data
-                    			output_res(out_buf_0, out_data_1, n, r, c, N, R, C, act);
-                    			out_buf_0_empty = 1;
-                    			resbufPtr = 1;
-								cout << "buffer 0 res" << endl;
-							}
-						}
-						resbufPtr = 0;
-					}
-				}
-			}
+                        while (!out_buf_0_empty | !out_buf_1_empty) {
+                            if (resbufPtr == 1) {
+                                cout << "output buffer 1...." << endl;
+                                // transfer output data
+                                output_res(out_buf_1, out_data_1, n+Tn, r, c, N, R, C, act);
+                                out_buf_1_empty = 1;
+                                resbufPtr = 0;
+                                cout << "buffer 1 res" << endl;
+                            } else {
+                                cout << "output buffer 0...." << endl;
+                                // transfer output data
+                                output_res(out_buf_0, out_data_1, n, r, c, N, R, C, act);
+                                out_buf_0_empty = 1;
+                                resbufPtr = 1;
+                                cout << "buffer 0 res" << endl;
+                            }
+                        }
+                        resbufPtr = 0;
+                    }
+                }
+            }
 #if _C_DEBUG_MODE_
 #if _KERNEL_DEBUG_
             cout << "Finished max_pool_acc_innerpp layer ...." << endl;

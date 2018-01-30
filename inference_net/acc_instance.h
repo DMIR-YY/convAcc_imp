@@ -33,9 +33,9 @@ void conv_layer_new(
 }
 #endif
 
-max_pool_acc<data_type, data_type_w, data_type_o, 32, 16, 16, 2, 2> maxPoolAcc1;
+max_pool_acc<data_type, data_type_w, data_type_o, Tm, Tr, Tc, S_max, K_max> maxPoolAcc1;
 
-//#if _LAYER_MODE_
+#if _LAYER_MODE_
 void max_pool_layer_new(
         int R_in,
         int C_in,
@@ -52,7 +52,7 @@ void max_pool_layer_new(
     maxPoolAcc1.max_pool_layer_acc(R_in, C_in, N, K, R, C, S, P, act, in_data_1, out_data_1);
 
 }
-//#endif
+#endif
 /*
 void conv_core_syn(data_type_w in_buf_0[8][128][128],
                    data_type_w w_buf_0[8][32][16][16],
@@ -99,7 +99,8 @@ void conv_core_syn(data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
                    data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
                    data_type_w b_buf_0[Tm],
                    data_type_w out_buf_0[Tm][OBUF_t][OBUF_t],
-                   int param_in[16]) {
+                   int conv_param[16],
+                   int pool_param[16]) {
 
 #pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
 
@@ -111,34 +112,40 @@ void conv_core_syn(data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
 #pragma HLS RESOURCE variable=in_buf_0  core=RAM_1P_BRAM
 #pragma HLS RESOURCE variable=w_buf_0   core=RAM_1P_BRAM
 #pragma HLS RESOURCE variable=out_buf_0 core=RAM_1P_BRAM
-#pragma HLS RESOURCE variable=param_in  core=RAM_1P_BRAM
+#pragma HLS RESOURCE variable=conv_param  core=RAM_1P_BRAM
 
 #pragma HLS INTERFACE bram port=in_buf_0
 #pragma HLS INTERFACE bram port=w_buf_0
 #pragma HLS INTERFACE bram port=b_buf_0
 #pragma HLS INTERFACE bram port=out_buf_0
-#pragma HLS INTERFACE bram port=param_in
+#pragma HLS INTERFACE bram port=conv_param
 
-    int param[16];
+    int param1[16];
+    int param2[16];
     data_type_w b_buf_0_tmp[Tm];
 #pragma HLS ARRAY_PARTITION variable=b_buf_0_tmp complete
 
     for(int i = 0; i<16; i++){
 #pragma HLS PIPELINE
-        param[i] = param_in[i];
+        param1[i] = conv_param[i];
+    }
+
+    for(int i = 0; i<16; i++){
+#pragma HLS PIPELINE
+        param2[i] = pool_param[i];
     }
 
     for(int i = 0; i<32; i++){
         b_buf_0_tmp[i] = b_buf_0[i];
     }
 
-    convAcc1.conv_core_acc(in_buf_0, w_buf_0, b_buf_0_tmp, out_buf_0, param);
+    convAcc1.conv_core_acc(in_buf_0, w_buf_0, b_buf_0_tmp, out_buf_0, param1, param2);
 }
 
 
 /*
-void pool_core_syn(data_type_w in_buf[32][16][16],
-                   data_type_w out_buf[32][16][16],
+void pool_core_syn(data_type_w in_buf[Tm][OBUF_t][OBUF_t],
+                   data_type_w out_buf[Tm][OBUF_t][OBUF_t],
                    int pool_param_in[16])
 {
 #pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS

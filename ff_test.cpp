@@ -152,7 +152,7 @@ int main() {
          for (int k = 0; k < 28; k++) {
             temp_out_0_1[in_data_size] = (data_type)image_orig[i*28*28 + 28*j + k];
             //in_buf_0[i][j][k] = (data_type)image_orig[i*28*28 + j*28 + k];
-	    in_data_size++;
+      in_data_size++;
          }
 
       }
@@ -299,16 +299,19 @@ int conv_param_2[16] = {6, 5, 16, 14, 14, 10, 10, 1, 0, 1, 150, 6, 0, 0, 1, 1};
 int pool_param_2[16] = {10, 10, 16, 2, 5, 5, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
 int conv_param_3[16] = {16, 5, 10, 5, 5, 1, 1, 5, 0, 1, 0, 0, 0, 0, 1, 1};
 
-int conv_engine_param_in[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1, 1, 0, 0, 0, 0, 0, 1, 0};
-int pool_engine_param_in[16] = {2, 0, 0, 0, 2, 14, 14, 16, 16, 0, 0, 0, 0, 0, 0, 0};
+int conv_engine_param_in_1[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1/*N*/, 1, 0, 0, 0, 0, 0, 1, 0};
+int conv_engine_param_in_2[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 6/*N*/, 1, 0, 0, 0, 0, 0, 1, 0};
+int pool_engine_param_in_1[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 28/*in_size*/, 28/*in_size*/, 0/*P*/, 16, 0, 0, 0, 0, 0, 0, 0};
+int pool_engine_param_in_2[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 10/*in_size*/, 10/*in_size*/, 0/*P*/, 16, 0, 0, 0, 0, 0, 0, 0};
 int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1, 1, 0, 0, 0, 0, 0, 1, 0};
 //    inference_net( dir_control_1, conv_param_1, pool_param_1, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
 
     //conv_1
     conv_pool_layer(
         conv_param_1,
-        conv_engine_param_in,
-        pool_engine_param_in,
+        pool_param_1,
+        conv_engine_param_in_1,
+        pool_engine_param_in_1,
         conv_weight_mem_port,
         conv_bias_mem_port,
         temp_out_0_1,
@@ -316,32 +319,34 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
         in_buf_0,
         w_buf_0,
         b_buf_0,
-        out_buf_0);
-
+        out_buf_0,
+        out_buf_1);
+/*
     //pool_1
     max_pool_layer_new(pool_param_1[0], pool_param_1[1], pool_param_1[2],
         pool_param_1[3], pool_param_1[4], pool_param_1[5], pool_param_1[6],
         pool_param_1[7], pool_param_1[8],  temp_out_1_1,  temp_out_0_1);
-/*
+*/
     //conv_2
     conv_pool_layer(
         conv_param_2,
-        conv_engine_param_in,
-        pool_engine_param_in,
+        pool_param_2,
+        conv_engine_param_in_2,
+        pool_engine_param_in_2,
         conv_weight_mem_port,
         conv_bias_mem_port,
-        temp_out_0_1,
         temp_out_1_1,
+        temp_out_0_1,
         in_buf_0,
         w_buf_0,
         b_buf_0,
-        out_buf_0);
-
+        out_buf_0,
+        out_buf_1);
+/*
     //pool_2
     max_pool_layer_new(pool_param_2[0], pool_param_2[1], pool_param_2[2],
         pool_param_2[3], pool_param_2[4], pool_param_2[5], pool_param_2[6],
         pool_param_2[7], pool_param_2[8],  temp_out_1_1,  temp_out_0_1);
-
     //fc_1
     conv_pool_layer(
         conv_param_3,
