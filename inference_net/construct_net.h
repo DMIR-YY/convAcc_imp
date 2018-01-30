@@ -11,6 +11,7 @@ using namespace std;
 
 void conv_pool_layer(
     int layer_param[16],
+    int layer_param_1[16],
     int conv_param[16],
     int pool_param[16],
     data_type_w *conv_weight_mem_port,
@@ -20,7 +21,8 @@ void conv_pool_layer(
     data_type_w in_buf_0[][IBUF_t][IBUF_t],
     data_type_w w_buf_0[][Tm][WBUF_t][WBUF_t],
     data_type_w b_buf_0[],
-    data_type_w out_buf_0[][OBUF_t][OBUF_t]){
+    data_type_w out_buf_0[][OBUF_t][OBUF_t],
+    data_type_w out_buf_1[][OBUF_t][OBUF_t]){
 
     int acc_call_rounds  = 0;
     for(int r = 0; r < layer_param[5]&&r<IBUF_t; r += IBUF_t) {
@@ -53,6 +55,7 @@ void conv_pool_layer(
                     }
                     conv_out.close();
 
+                    /*cout << "conv acc round : "  << acc_call_rounds << endl;
                     cout << "b buf 0 data :" << endl;
                     for (int i =0; i<Tm && i<layer_param[2]; i++) {
                         cout << b_buf_0[i] << "  ";
@@ -85,7 +88,7 @@ void conv_pool_layer(
                         cout << endl;
                     }
                     cout << endl;
-                    cout << endl;
+                    cout << endl;*/
 #endif
 
 #if _C_DEBUG_MODE_
@@ -99,7 +102,7 @@ void conv_pool_layer(
                             conv_param[5] = r_offset;
                             conv_param[6] = c_offset;
                             for(int i =0; i<16; i++){cout << conv_param[i] << "  ";} cout << endl;
-                            conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_param);
+                            conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_param, pool_param);
                             cout << "acc call round = " << acc_call_rounds << endl;
                         }
                     }
@@ -107,14 +110,13 @@ void conv_pool_layer(
 
 #if _C_DEBUG_MODE_
                     // read results out
-                    convAcc1.output_res(out_buf_0, temp_out_1_1, 0, n, m, r, c, layer_param[0], layer_param[2], layer_param[5], layer_param[6], 1);
-                    cout << "out buf 0 data :" << endl;
-                    conv_out.open("conv_buf_data.txt", ios::app);
-                    conv_out <<"conv output: "<< endl;
+                    maxPoolAcc1.output_res(out_buf_0, temp_out_1_1, m, r, c, layer_param_1[2], layer_param_1[4], layer_param_1[5], 1);
+                    conv_out.open("conv_pool_buf_data.txt", ios::app);
+                    conv_out <<"conv_pool output: "<< endl;
                     for (int i = 0; i < layer_param[2]; i++) {
-                        for (int j = 0; j < layer_param[5]; j++) {
-                            for(int k = 0; k < layer_param[6]; k++){
-                                conv_out << *(temp_out_1_1+i*layer_param[5]*layer_param[6]+j*layer_param[6]+k) << " ";
+                        for (int j = 0; j < layer_param_1[4]; j++) {
+                            for(int k = 0; k < layer_param_1[5]; k++){
+                                conv_out << *(temp_out_1_1 + i*layer_param_1[4]*layer_param_1[5]+j*layer_param_1[5]+k) << " ";
                             }
                             conv_out << endl;
                         }

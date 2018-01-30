@@ -5,6 +5,7 @@
 #include <fstream>
 #include "activation_functions.h"
 #include "config.h"
+#include "max_pool_acc_innerpp.h"
 
 #if _C_DEBUG_MODE_
 #include <algorithm>
@@ -16,22 +17,22 @@ template <typename T, typename W, typename G, int Tm, int Tn, int Tr, int Tc, in
 class conv_acc {
 
 private:
-	int conv_layer_number;
+    int conv_layer_number;
 
 public:
-	conv_acc() : conv_layer_number(0) {conv_layer_number = 0;};
+    conv_acc() : conv_layer_number(0) {conv_layer_number = 0;};
 
-	////------------------------------C++ debugging functions---------------------------------------////
-	// Reset output buffer
-	void out_buf_reset(G buf[][Tr][Tc]){
+    ////------------------------------C++ debugging functions---------------------------------------////
+    // Reset output buffer
+    void out_buf_reset(G buf[][Tr][Tc]){
         for(int i = 0; i < Tm; i++){
             for(int j = 0; j < Tr; j++){
                 for(int k = 0; k < Tc; k++){
                     buf[i][j][k] = G(0);
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
     // Reset weight buffer
     void w_buf_reset(int K, W buf[][Tm][K_max][K_max]){
         for(int i = 0; i < Tn; i++){
@@ -40,10 +41,10 @@ public:
                     for(int l = 0; l < K; l++){
                         buf[i][j][k][l] = W(0);
                     }
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
     ////-----------------------------Accelerator Functions---------------------------------------////
     // Load bias data
     void b_buf_load(W buf[], W *layer_bias, int bias_offset, int m){
@@ -57,35 +58,35 @@ public:
        for (int j = r * S - P; j < (r + (IBUF_t>R_IN?R_IN:IBUF_t) - 1) * S + K - P; j++) {
            for (int k = c * S - P; k < (c + (IBUF_t>C_IN?C_IN:IBUF_t) - 1) * S + K - P; k++) {
 #pragma HLS PIPELINE
-        	for (int i = 0; i < Tn; i+=1){
+            for (int i = 0; i < Tn; i+=1){
 #pragma HLS UNROLL
-                   	if ((n + Tn > N && i + 0 >= N - n ) || j < 0 || j >= R_IN || k < 0 || k >= C_IN) {
-                       	buf[i + 0][j - r * S + P][k - c * S + P] = T(0);
-                   	} else {
-                       	buf[i + 0][j - r * S + P][k - c * S + P] = *(in_data_1 + in_offset + (i + n)/1 * R_IN * C_IN + j * C_IN + k);
-               		}
-				}
-			}
-		}
-	}
+                    if ((n + Tn > N && i + 0 >= N - n ) || j < 0 || j >= R_IN || k < 0 || k >= C_IN) {
+                        buf[i + 0][j - r * S + P][k - c * S + P] = T(0);
+                    } else {
+                        buf[i + 0][j - r * S + P][k - c * S + P] = *(in_data_1 + in_offset + (i + n)/1 * R_IN * C_IN + j * C_IN + k);
+                    }
+                }
+            }
+        }
+    }
 
 
     // Load weights to weight buffer
    void w_buf_load(W buf[][Tm][WBUF_t][WBUF_t], W *layer_weights, int weight_offset, int n, int m, int K, int N, int M){
        for(int k1 = 0; k1 < K; k1++){
            for(int k2 = 0; k2 < K; k2++){
-        	    for(int j = 0; j < Tn && j < N - n; j++){
-            	    for(int i = 0; i < Tm && i < M - m; i++){
+                for(int j = 0; j < Tn && j < N - n; j++){
+                    for(int i = 0; i < Tm && i < M - m; i++){
 #pragma HLS PIPELINE
                         buf[j][i][k1][k2] = *(layer_weights + weight_offset + (i+m)*N*K*K + (j+n)*K*K + k1*K + k2);
                    }
-				}
-			}
-		}
-	}
+                }
+            }
+        }
+    }
     // Convolution computation kernel
     void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc],
-                     int S, int n, int r, int c, int K, int TR, int TC, int r_offset, int c_offset){
+                     int S, int n, int r, int c, int K, int r_offset, int c_offset){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
                 for(int tr=0; tr<Tr; tr++){
@@ -107,6 +108,22 @@ public:
         }
     }
 
+    void pool_engine(T in_buf[][OBUF_t][OBUF_t], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int R, int C, int TR, int TC, int r_offset, int c_offset){
+        for(int i=0; i<K; i++){
+            for(int j=0; j<K; j++){
+                for(int tr=0; tr<Tr&&tr+r<R&&(S * tr + i)<TR; tr++){
+                    for(int tc=0; tc<Tc&&tc+c<C&&(S * tc + j)<TC; tc++){
+#pragma HLS PIPELINE
+                        for(int tn=0; tn<Tm; tn++){
+#pragma HLS UNROLL
+                            out_buf[tn][tr][tc] = (i==0&&j==0)?in_buf[tn][S*tr + r_offset][S*tc + c_offset]:((out_buf[tn][tr][tc]>in_buf[tn][S*tr+i + r_offset][S*tc+j + c_offset])?out_buf[tn][tr][tc]:in_buf[tn][S*tr+i + r_offset][S*tc+j + c_offset]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
     // Ouput out_buf data to output interface
     void output_res(G out_buf[][OBUF_t][OBUF_t], G *out_data_1, int out_offset, int n, int m, int r, int c, int N, int M, int R_OUT, int C_OUT, bool act){
@@ -116,12 +133,12 @@ public:
                     for (int i = 0; i < Tm && i < M-m; i += 1) {
 #pragma HLS PIPELINE
                         if (act) {
-                        	if (i + 0 < M-m)
-                            	*(out_data_1 + out_offset + ((i+m)/1) * R_OUT * C_OUT + j * C_OUT + k) = relu(out_buf[i + 0][j - r][k - c]);
+                            if (i + 0 < M-m)
+                                *(out_data_1 + out_offset + ((i+m)/1) * R_OUT * C_OUT + j * C_OUT + k) = relu(out_buf[i + 0][j - r][k - c]);
                         }
                         else {
-                        	if (i + 0 < M-m)
-                            	*(out_data_1 + out_offset + ((i+m)/1) * R_OUT * C_OUT + j * C_OUT + k) = out_buf[i + 0][j - r][k - c];
+                            if (i + 0 < M-m)
+                                *(out_data_1 + out_offset + ((i+m)/1) * R_OUT * C_OUT + j * C_OUT + k) = out_buf[i + 0][j - r][k - c];
                         }
                     }
                 }
@@ -190,105 +207,105 @@ public:
             w_buf_reset(K, w_buf_0);
 #endif
 #endif
-		for(int r = 0; r < R_OUT; r += Tr){
-			for(int c = 0; c < C_OUT; c += Tc){
-				for(int m = 0; m < M; m += Tm){
-					for(int n = 0; n < N; n += 2*Tn){
+        for(int r = 0; r < R_OUT; r += Tr){
+            for(int c = 0; c < C_OUT; c += Tc){
+                for(int m = 0; m < M; m += Tm){
+                    for(int n = 0; n < N; n += 2*Tn){
    //--------------------------Load input B W D in ping-pong manner-------------------------//
-						while ((in_buf_0_empty | in_buf_1_empty)&& (!last_load)) {
-							if (loadbufPtr == 1) {
-                    			cout << "loading input buffer 1...." << endl;
-                        		// load input data
-                        		in_buf_load(in_buf_1, in_data_1, in_offset, n+Tn, r, c, S, K, P, R_IN, C_IN, N);
-                        		// load input weights
-                        		w_buf_load(w_buf_1, layer_weights, weight_offset, n+Tn, m, K, N, M);
-                        		in_buf_1_empty = 0;
-                        		cout << "buffer 1 full" << endl;
-                        		loadbufPtr = 0;
-                        		if (n+2*Tn >= N) {last_load = 1;}
-                        	} else {
-                    			cout << "loading input buffer 0...." << endl;
-                        		// load input data
-                        		in_buf_load(in_buf_0, in_data_1, in_offset, n, r, c, S, K, P, R_IN, C_IN, N);
-                        		// load input weights
-                        		w_buf_load(w_buf_0, layer_weights, weight_offset, n, m, K, N, M);
-                        		in_buf_0_empty = 0;
-                        		cout << "buffer 0 full" << endl;
-                        		loadbufPtr = 1;
-                        		if (n+Tn >= N) {last_load = 1;}
-							}
+                        while ((in_buf_0_empty | in_buf_1_empty)&& (!last_load)) {
+                            if (loadbufPtr == 1) {
+                                cout << "loading input buffer 1...." << endl;
+                                // load input data
+                                in_buf_load(in_buf_1, in_data_1, in_offset, n+Tn, r, c, S, K, P, R_IN, C_IN, N);
+                                // load input weights
+                                w_buf_load(w_buf_1, layer_weights, weight_offset, n+Tn, m, K, N, M);
+                                in_buf_1_empty = 0;
+                                cout << "buffer 1 full" << endl;
+                                loadbufPtr = 0;
+                                if (n+2*Tn >= N) {last_load = 1;}
+                            } else {
+                                cout << "loading input buffer 0...." << endl;
+                                // load input data
+                                in_buf_load(in_buf_0, in_data_1, in_offset, n, r, c, S, K, P, R_IN, C_IN, N);
+                                // load input weights
+                                w_buf_load(w_buf_0, layer_weights, weight_offset, n, m, K, N, M);
+                                in_buf_0_empty = 0;
+                                cout << "buffer 0 full" << endl;
+                                loadbufPtr = 1;
+                                if (n+Tn >= N) {last_load = 1;}
+                            }
                        }
                        loadbufPtr = 0;
                        last_load = 0;
    //------------------------------compute buffered data -----------------------------------//
-                    	while ((!in_buf_0_empty | !in_buf_1_empty)&& (!last_com)) {
-                    		if (combufPtr == 1) {
-                    			cout << "computing input buffer 1...." << endl;
-                    			if(resbufPtr == 1){
-                        			conv_engine(in_buf_1, w_buf_1, out_buf_1, S, n+Tn, r, c, K, R_OUT, C_OUT);
-                    				out_buf_1_empty = 0;
-                    			}else{
-                        			conv_engine(in_buf_1, w_buf_1, out_buf_0, S, n+Tn, r, c, K, R_OUT, C_OUT);
-                    				out_buf_0_empty = 0;
-                    			}
-                    			in_buf_1_empty = 1;
-                    			combufPtr = 0;
-                    			cout << "buffer 1 computed" << endl;
-                    			if (n+2*Tn >= N) {last_com = 1;}
-                    		} else {
-                    			cout << "computing input buffer 0...." << endl;
-                    			if(resbufPtr == 1){
-                        			conv_engine(in_buf_0, w_buf_0, out_buf_1, S, n, r, c, K, R_OUT, C_OUT);
-                    				out_buf_1_empty = 0;
-                    			}else{
-                        			conv_engine(in_buf_0, w_buf_0, out_buf_0, S, n, r, c, K, R_OUT, C_OUT);
-                    				out_buf_0_empty = 0;
-                    			}
-                    			in_buf_0_empty = 1;
-                    			combufPtr = 1;
-                    			cout << "buffer 0 computed" << endl;
-								if (n+Tn >= N) {last_com = 1;}
-							}
+                        while ((!in_buf_0_empty | !in_buf_1_empty)&& (!last_com)) {
+                            if (combufPtr == 1) {
+                                cout << "computing input buffer 1...." << endl;
+                                if(resbufPtr == 1){
+                                    conv_engine(in_buf_1, w_buf_1, out_buf_1, S, n+Tn, r, c, K, R_OUT, C_OUT);
+                                    out_buf_1_empty = 0;
+                                }else{
+                                    conv_engine(in_buf_1, w_buf_1, out_buf_0, S, n+Tn, r, c, K, R_OUT, C_OUT);
+                                    out_buf_0_empty = 0;
+                                }
+                                in_buf_1_empty = 1;
+                                combufPtr = 0;
+                                cout << "buffer 1 computed" << endl;
+                                if (n+2*Tn >= N) {last_com = 1;}
+                            } else {
+                                cout << "computing input buffer 0...." << endl;
+                                if(resbufPtr == 1){
+                                    conv_engine(in_buf_0, w_buf_0, out_buf_1, S, n, r, c, K, R_OUT, C_OUT);
+                                    out_buf_1_empty = 0;
+                                }else{
+                                    conv_engine(in_buf_0, w_buf_0, out_buf_0, S, n, r, c, K, R_OUT, C_OUT);
+                                    out_buf_0_empty = 0;
+                                }
+                                in_buf_0_empty = 1;
+                                combufPtr = 1;
+                                cout << "buffer 0 computed" << endl;
+                                if (n+Tn >= N) {last_com = 1;}
+                            }
                        }
                        combufPtr = 0;
                        last_com = 0;
    //---------------------------transfer output data----------------------------------------//
-                    	while ((!out_buf_0_empty | !out_buf_1_empty)&& (!last_res)) {
-                    		if (resbufPtr == 1) {
-                    			cout << "output buffer 1...." << endl;
-                    			// transfer output data
-                    			if (n+Tn >= N) {
-                    				last_res = 1;
-                    				resbufPtr = 0;
-                    				output_res(out_buf_1, out_data_1, out_offset, n, m, r, c, N, M, R_OUT, C_OUT, act);
-                    			}else if (n+2*Tn >= N) {
-                    				last_res = 1;
-                    				resbufPtr = 0;
-                    				output_res(out_buf_1, out_data_1, out_offset, n+Tn, m, r, c, N, M, R_OUT, C_OUT, act);
-                    			}
-                    			out_buf_1_empty = 1;
-                    			cout << "buffer 1 res" << endl;
-                    		} else {
-                    			cout << "output buffer 0...." << endl;
-                    			// transfer output data
-                    			if (n+Tn >= N) {
-                    				last_res = 1;
-                    				resbufPtr = 1;
-                    				output_res(out_buf_0, out_data_1, out_offset, n, m, r, c, N, M, R_OUT, C_OUT, act);
-                    			}else if (n+2*Tn >= N) {
-                    				last_res = 1;
-                    				resbufPtr = 1;
-                    				output_res(out_buf_0, out_data_1, out_offset, n+Tn, m, r, c, N, M, R_OUT, C_OUT, act);
-                    			}
-                    			out_buf_0_empty = 1;
-								cout << "buffer 0 res" << endl;
-							}
-						}
-						last_res = 0;
-					}
-				}
-			}
-		}
+                        while ((!out_buf_0_empty | !out_buf_1_empty)&& (!last_res)) {
+                            if (resbufPtr == 1) {
+                                cout << "output buffer 1...." << endl;
+                                // transfer output data
+                                if (n+Tn >= N) {
+                                    last_res = 1;
+                                    resbufPtr = 0;
+                                    output_res(out_buf_1, out_data_1, out_offset, n, m, r, c, N, M, R_OUT, C_OUT, act);
+                                }else if (n+2*Tn >= N) {
+                                    last_res = 1;
+                                    resbufPtr = 0;
+                                    output_res(out_buf_1, out_data_1, out_offset, n+Tn, m, r, c, N, M, R_OUT, C_OUT, act);
+                                }
+                                out_buf_1_empty = 1;
+                                cout << "buffer 1 res" << endl;
+                            } else {
+                                cout << "output buffer 0...." << endl;
+                                // transfer output data
+                                if (n+Tn >= N) {
+                                    last_res = 1;
+                                    resbufPtr = 1;
+                                    output_res(out_buf_0, out_data_1, out_offset, n, m, r, c, N, M, R_OUT, C_OUT, act);
+                                }else if (n+2*Tn >= N) {
+                                    last_res = 1;
+                                    resbufPtr = 1;
+                                    output_res(out_buf_0, out_data_1, out_offset, n+Tn, m, r, c, N, M, R_OUT, C_OUT, act);
+                                }
+                                out_buf_0_empty = 1;
+                                cout << "buffer 0 res" << endl;
+                            }
+                        }
+                        last_res = 0;
+                    }
+                }
+            }
+        }
 #if _C_DEBUG_MODE_
 #if _KERNEL_DEBUG_
             cout << "Finished conv_acc_innerpp layer ...." << endl;
@@ -313,21 +330,60 @@ public:
         data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
         data_type_w b_buf_0[Tm],
         data_type_w out_buf_0[Tm][OBUF_t][OBUF_t],
-        int param[16]) {
+        int param1[16],
+        int param2[16]) {
     
         data_type_w out_buf_tmp[Tm][Tr][Tc];
+        data_type_w out_buf_pool_tmp[Tm][Tr][Tc];
+        data_type_w in_buf_pool[Tm][OBUF_t][OBUF_t];
 #pragma HLS ARRAY_PARTITION variable=out_buf_tmp complete dim=1
         
-        int r_offset = param[5];
-        int c_offset = param[6];
+        int r_offset = param1[5];
+        int c_offset = param1[6];
 
-        conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param[0], param[1], param[2], param[3], param[4], param[7], param[8], r_offset, c_offset);
-    
-        for(int j =0; j < Tr; j++) {
-            for(int k=0; k < Tc; k++) {
+        conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], r_offset, c_offset);
+        if (param1[1] >= param1[7] - Tn) {
+            for(int j =0; j < Tr; j++) {
+                for(int k=0; k < Tc; k++) {
 #pragma HLS PIPELINE
-                for(int i=0; i < Tm; i++) {
-                    out_buf_0[i][j+r_offset][k+c_offset] = out_buf_tmp[i][j][k];
+                    for(int i=0; i < Tm; i++) {
+                        in_buf_pool[i][j+r_offset][k+c_offset] = relu(out_buf_tmp[i][j][k]);
+                    }
+                }
+            }
+
+            int TR=((param2[2] * param2[0] + (Tr - 1) * param2[0] + param2[4])>param2[5]?(param2[5] - param2[2] * param2[0]):((Tr - 1) * param2[0] + param2[4]));
+            int TC=((param2[2] * param2[0] + (Tc - 1) * param2[0] + param2[4])>param2[6]?(param2[6] - param2[2] * param2[0]):((Tc - 1) * param2[0] + param2[4]));
+
+            pool_engine(in_buf_pool, out_buf_pool_tmp, param2[0], param2[1], param2[2], param2[3], param2[4], param2[5], param2[6], TR, TC, r_offset, c_offset);
+
+            ofstream conv_out;
+            conv_out.open("pool_buf_data.txt", ios::app);
+            conv_out <<"pool output: "<< endl;
+            for (int i = 0; i < 16; i++) {
+                for (int j = 0; j < 5; j++) {
+                    for(int k = 0; k < 5; k++){
+                        conv_out << out_buf_pool_tmp[i][j][k] << " ";
+                    }
+                    conv_out << endl;
+                }
+                conv_out << endl;
+            }
+            conv_out.close();
+
+            int r_offset_1=0;
+            int c_offset_1=0;
+            //output_size = (input_size + 2 * pad - kernel_size) / stride + 1
+            int r_out = (Tr + 2 * param2[7] - param2[4]) / param2[0] + 1;
+            int c_out = (Tc + 2 * param2[7] - param2[4]) / param2[0] + 1;
+            r_offset_1 = r_offset / Tr * r_out;
+            c_offset_1 = c_offset / Tc * c_out;
+            for(int j =0; j < r_out; j++) {
+                for(int k=0; k < c_out; k++) {
+    #pragma HLS PIPELINE
+                    for(int i=0; i < Tm; i++) {
+                        out_buf_0[i][j+r_offset_1][k+c_offset_1] = out_buf_pool_tmp[i][j][k];
+                    }
                 }
             }
         }
@@ -338,4 +394,4 @@ public:
 };
 #endif
     
-    
+ 
