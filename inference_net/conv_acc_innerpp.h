@@ -85,8 +85,7 @@ public:
         }
     }
     // Convolution computation kernel
-    void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc],
-                     int S, int n, int r, int c, int K, int r_offset, int c_offset){
+    void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int r_offset, int c_offset){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
                 for(int tr=0; tr<Tr; tr++){
@@ -107,16 +106,16 @@ public:
             }
         }
     }
-
-    void pool_engine(T in_buf[][OBUF_t][OBUF_t], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int R, int C, int TR, int TC, int r_offset, int c_offset){
+    // Max pooling computation kernel
+    void pool_engine(T in_buf[][Tr][Tc], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int R, int C, int TR, int TC){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
-                for(int tr=0; tr<Tr&&tr+r<R&&(S * tr + i)<TR; tr++){
-                    for(int tc=0; tc<Tc&&tc+c<C&&(S * tc + j)<TC; tc++){
+                for(int tr=0; tr+r<R&&(S * tr + i)<TR; tr++){
+                    for(int tc=0; tc+c<C&&(S * tc + j)<TC; tc++){
 #pragma HLS PIPELINE
                         for(int tn=0; tn<Tm; tn++){
 #pragma HLS UNROLL
-                            out_buf[tn][tr][tc] = (i==0&&j==0)?in_buf[tn][S*tr + r_offset][S*tc + c_offset]:((out_buf[tn][tr][tc]>in_buf[tn][S*tr+i + r_offset][S*tc+j + c_offset])?out_buf[tn][tr][tc]:in_buf[tn][S*tr+i + r_offset][S*tc+j + c_offset]);
+                            out_buf[tn][tr][tc] = (i==0&&j==0)?in_buf[tn][S*tr][S*tc]:((out_buf[tn][tr][tc]>in_buf[tn][S*tr+i][S*tc+j])?out_buf[tn][tr][tc]:in_buf[tn][S*tr+i][S*tc+j]);
                         }
                     }
                 }
@@ -335,7 +334,7 @@ public:
     
         data_type_w out_buf_tmp[Tm][Tr][Tc];
         data_type_w out_buf_pool_tmp[Tm][Tr][Tc];
-        data_type_w in_buf_pool[Tm][OBUF_t][OBUF_t];
+        
 #pragma HLS ARRAY_PARTITION variable=out_buf_tmp complete dim=1
         
         int r_offset = param1[5];
@@ -345,17 +344,18 @@ public:
         if (param1[1] >= param1[7] - Tn) {
             for(int j =0; j < Tr; j++) {
                 for(int k=0; k < Tc; k++) {
-#pragma HLS PIPELINE
+    #pragma HLS PIPELINE
                     for(int i=0; i < Tm; i++) {
-                        in_buf_pool[i][j+r_offset][k+c_offset] = relu(out_buf_tmp[i][j][k]);
+                        out_buf_tmp[i][j][k] = relu(out_buf_tmp[i][j][k]);
                     }
                 }
             }
 
+            //input size
             int TR=((param2[2] * param2[0] + (Tr - 1) * param2[0] + param2[4])>param2[5]?(param2[5] - param2[2] * param2[0]):((Tr - 1) * param2[0] + param2[4]));
             int TC=((param2[2] * param2[0] + (Tc - 1) * param2[0] + param2[4])>param2[6]?(param2[6] - param2[2] * param2[0]):((Tc - 1) * param2[0] + param2[4]));
 
-            pool_engine(in_buf_pool, out_buf_pool_tmp, param2[0], param2[1], param2[2], param2[3], param2[4], param2[5], param2[6], TR, TC, r_offset, c_offset);
+            pool_engine(out_buf_tmp, out_buf_pool_tmp, param2[0], param2[1], param2[2], param2[3], param2[4], param2[5], param2[6], TR, TC);
 
             ofstream conv_out;
             conv_out.open("pool_buf_data.txt", ios::app);
