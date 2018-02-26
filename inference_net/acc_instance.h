@@ -113,12 +113,14 @@ void conv_core_syn(data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
 #pragma HLS RESOURCE variable=w_buf_0   core=RAM_1P_BRAM
 #pragma HLS RESOURCE variable=out_buf_0 core=RAM_1P_BRAM
 #pragma HLS RESOURCE variable=conv_param  core=RAM_1P_BRAM
+#pragma HLS RESOURCE variable=pool_param  core=RAM_1P_BRAM
 
 #pragma HLS INTERFACE bram port=in_buf_0
 #pragma HLS INTERFACE bram port=w_buf_0
 #pragma HLS INTERFACE bram port=b_buf_0
 #pragma HLS INTERFACE bram port=out_buf_0
 #pragma HLS INTERFACE bram port=conv_param
+#pragma HLS INTERFACE bram port=pool_param
 
     int param1[16];
     int param2[16];

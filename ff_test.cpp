@@ -347,11 +347,13 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
     max_pool_layer_new(pool_param_2[0], pool_param_2[1], pool_param_2[2],
         pool_param_2[3], pool_param_2[4], pool_param_2[5], pool_param_2[6],
         pool_param_2[7], pool_param_2[8],  temp_out_1_1,  temp_out_0_1);
+*/
+/*
     //fc_1
     conv_pool_layer(
         conv_param_3,
         fc_engine_param_in,
-        pool_engine_param_in,
+        pool_engine_param_in_2,
         fc_weight_mem_port,
         fc_bias_mem_port,
         temp_out_0_1,

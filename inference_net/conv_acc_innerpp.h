@@ -336,6 +336,7 @@ public:
         data_type_w out_buf_pool_tmp[Tm][Tr][Tc];
         
 #pragma HLS ARRAY_PARTITION variable=out_buf_tmp complete dim=1
+#pragma HLS ARRAY_PARTITION variable=out_buf_pool_tmp complete dim=1
         
         int r_offset = param1[5];
         int c_offset = param1[6];
@@ -344,7 +345,7 @@ public:
         if (param1[1] >= param1[7] - Tn) {
             for(int j =0; j < Tr; j++) {
                 for(int k=0; k < Tc; k++) {
-    #pragma HLS PIPELINE
+#pragma HLS PIPELINE
                     for(int i=0; i < Tm; i++) {
                         out_buf_tmp[i][j][k] = relu(out_buf_tmp[i][j][k]);
                     }
@@ -357,6 +358,7 @@ public:
 
             pool_engine(out_buf_tmp, out_buf_pool_tmp, param2[0], param2[1], param2[2], param2[3], param2[4], param2[5], param2[6], TR, TC);
 
+#if _C_DEBUG_MODE_
             ofstream conv_out;
             conv_out.open("pool_buf_data.txt", ios::app);
             conv_out <<"pool output: "<< endl;
@@ -370,6 +372,7 @@ public:
                 conv_out << endl;
             }
             conv_out.close();
+#endif
 
             int r_offset_1=0;
             int c_offset_1=0;
@@ -378,9 +381,10 @@ public:
             int c_out = (Tc + 2 * param2[7] - param2[4]) / param2[0] + 1;
             r_offset_1 = r_offset / Tr * r_out;
             c_offset_1 = c_offset / Tc * c_out;
+
             for(int j =0; j < r_out; j++) {
                 for(int k=0; k < c_out; k++) {
-    #pragma HLS PIPELINE
+#pragma HLS PIPELINE
                     for(int i=0; i < Tm; i++) {
                         out_buf_0[i][j+r_offset_1][k+c_offset_1] = out_buf_pool_tmp[i][j][k];
                     }
