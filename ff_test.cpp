@@ -328,6 +328,7 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
         pool_param_1[7], pool_param_1[8],  temp_out_1_1,  temp_out_0_1);
 */
     //conv_2
+/*
     conv_pool_layer(
         conv_param_2,
         pool_param_2,
@@ -342,6 +343,7 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
         b_buf_0,
         out_buf_0,
         out_buf_1);
+*/
 /*
     //pool_2
     max_pool_layer_new(pool_param_2[0], pool_param_2[1], pool_param_2[2],
