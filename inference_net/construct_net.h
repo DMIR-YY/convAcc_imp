@@ -102,6 +102,15 @@ void conv_pool_layer(
                             conv_param[5] = r_offset;
                             conv_param[6] = c_offset;
                             for(int i =0; i<16; i++){cout << conv_param[i] << "  ";} cout << endl;
+
+                            // FPGA impl parameter load should happen here
+                            cout << "conv_param = {" ;
+                            for (int i = 0; i < 16; i++) {cout << conv_param[i] << ", ";}
+                            cout << "}; " << endl;
+                            cout << "pool_param = {" ;
+                            for (int i = 0; i < 16; i++) {cout << pool_param[i] << ", ";}
+                            cout << "}; " << endl;
+
                             conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_param, pool_param);
                             cout << "acc call round = " << acc_call_rounds << endl;
                         }
