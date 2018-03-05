@@ -1,4 +1,3 @@
-
 #ifndef _CONSTRUCT_NET_H_
 #define _CONSTRUCT_NET_H_
 #include <iostream>
