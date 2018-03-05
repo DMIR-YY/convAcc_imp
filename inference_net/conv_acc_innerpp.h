@@ -85,7 +85,7 @@ public:
         }
     }
     // Convolution computation kernel
-    void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int w_offset, int r_offset, int c_offset){
+    void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int w_r_offset, int w_c_offset, int r_offset, int c_offset){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
                 for(int tr=0; tr<Tr; tr++){
@@ -96,9 +96,9 @@ public:
                             for(int tn=0; tn<Tn; tn++){
 #pragma HLS UNROLL
                                 if(i==0&&j==0&&tn==0&&n==0) 
-                                    out_buf[tm][tr][tc] = b_buf[tm] + w_buf[tn][tm][i + w_offset][j + w_offset] * in_buf[tn][S*(tr)+i + r_offset][S*(tc)+j + c_offset];
+                                    out_buf[tm][tr][tc] = b_buf[tm] + w_buf[tn][tm][i + w_r_offset][j + w_c_offset] * in_buf[tn][S*(tr)+i + r_offset][S*(tc)+j + c_offset];
                                 else
-                                    out_buf[tm][tr][tc] = out_buf[tm][tr][tc] + w_buf[tn][tm][i + w_offset][j + w_offset] * in_buf[tn][S*(tr) + i + r_offset][S*(tc)+j + c_offset];
+                                    out_buf[tm][tr][tc] = out_buf[tm][tr][tc] + w_buf[tn][tm][i + w_r_offset][j + w_c_offset] * in_buf[tn][S*(tr) + i + r_offset][S*(tc)+j + c_offset];
                             }
                         }
                     }
@@ -338,11 +338,12 @@ public:
 #pragma HLS ARRAY_PARTITION variable=out_buf_tmp complete dim=1
 #pragma HLS ARRAY_PARTITION variable=out_buf_pool_tmp complete dim=1
         
-        int w_offset = param1[9];
+        int w_r_offset = param1[9];
+        int w_c_offset = param1[10];
         int r_offset = param1[5];
         int c_offset = param1[6];
 
-        conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_offset, r_offset, c_offset);
+        conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset);
         if (param1[1] >= param1[7] - Tn) {
             for(int j =0; j < Tr; j++) {
                 for(int k=0; k < Tc; k++) {
