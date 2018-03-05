@@ -111,8 +111,16 @@ void conv_pool_layer(
                             for (int i = 0; i < 16; i++) {cout << pool_param[i] << ", ";}
                             cout << "}; " << endl;
 
+                            // Accelerator core execution
                             conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_param, pool_param);
                             cout << "acc call round = " << acc_call_rounds << endl;
+                            for (int i = 0; i < 32; i++) {
+                                for (int j = 0; j < 32; j++) {
+                                    cout << out_buf_0[0][i][j] << "  ";
+                                }
+                                cout << endl;
+                            }
+                            cout << endl;
                         }
                     }
                     //pool_core_syn(out_buf_0, out_buf_1, pool_engine_param_in);
