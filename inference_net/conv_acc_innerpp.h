@@ -84,14 +84,21 @@ public:
             }
         }
     }
-    void w_buf_t_load(W buf[][Tm][WBUF_t][WBUF_t], W *layer_weights, int weight_offset, int n, int m, int K, int N, int M, int w_r_offset, int w_c_offset){
-       for(int k1 = 0; k1 < K; k1++){
-           for(int k2 = 0; k2 < K; k2++){
-                for(int j = 0; j < Tn && j < N - n; j++){
-                    for(int i = 0; i < Tm && i < M - m; i++){
+    
+    void w_buf_t_load(W buf[][Tm][WBUF_t][WBUF_t], W *layer_weights, int weight_offset, int K, int N, int M, int w_r_offset, int w_c_offset){
+        for (int m = 0; m < M; m += Tm) {
+            for (int n = 0; n < N; n += Tn) {
+                w_c_offset += K*(n/Tn);
+                w_r_offset += K*(m/Tm);
+                for(int k1 = 0; k1 < K; k1++){
+                    for(int k2 = 0; k2 < K; k2++){
+                        for(int j = 0; j < Tn && j < N; j++){
+                            for(int i = 0; i < Tm && i < M; i++){
 #pragma HLS PIPELINE
-                        buf[j][i][k1+w_r_offset][k2+w_c_offset] = *(layer_weights + weight_offset + (i+m)*N*K*K + (j+n)*K*K + k1*K + k2);
-                   }
+                                buf[j][i][k1+w_r_offset][k2+w_c_offset] = *(layer_weights + weight_offset + (i+m)*N*K*K + (j+n)*K*K + k1*K + k2);
+                           }
+                        }
+                    }
                 }
             }
         }

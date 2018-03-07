@@ -31,7 +31,6 @@ void conv_pool_layer(
             for (int m = 0; m < layer_param[2]; m += Tm) {
                 for (int n = 0; n < layer_param[0]; n += Tn) {
 
-
                     // fill in buffer
                     conv_param[1] = n;
                     conv_param[2] = r;
@@ -41,27 +40,6 @@ void conv_pool_layer(
                     convAcc1.b_buf_load(b_buf_0, conv_bias_mem_port, layer_param[11], m);
 #if _LAYER_MODE_
                     convAcc1.w_buf_load(w_buf_0, conv_weight_mem_port, layer_param[10], n, m, layer_param[1], layer_param[0], layer_param[2]);
-#endif
-#if _ACC_MODE_
-                    w_c_offset += layer_param[1]*(n/Tn);
-                    w_r_offset += layer_param[1]*(m/Tm);
-                    convAcc1.w_buf_t_load(w_buf_0, conv_weight_mem_port, layer_param[10], n, m, layer_param[1], layer_param[0], layer_param[2], w_r_offset, w_c_offset);
-                    ofstream w_buf_t;
-                    w_buf_t.open("w_buf_data.txt", ios::app);
-                    w_buf_t <<"w_buf_data: "<< endl;
-                    for (int i = 0; i < 8; i++) {
-                        for (int j = 0; j < 32; j++) {
-                            for(int k = 0; k < 32; k++){
-                                for(int l = 0; l < 32; l++){
-                                    w_buf_t << w_buf_0[i][j][k][l] << " ";
-                                }
-                                w_buf_t << endl;
-                            }
-                            w_buf_t << endl;
-                        }
-                        w_buf_t << endl;
-                    }
-                    w_buf_t.close();
 #endif
 #if _C_DEBUG_MODE_
                     ofstream conv_out;
