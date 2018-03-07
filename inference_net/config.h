@@ -8,7 +8,7 @@ typedef float data_type_w;
 typedef float data_type_o;
 
 // C++ compilation debug mode
-//#define _LAYER_MODE_ 0
+//#define _LAYER_MODE_ 1
 
 // C++ compilation debug mode
 #ifdef _LAYER_MODE_

@@ -84,6 +84,18 @@ public:
             }
         }
     }
+    void w_buf_t_load(W buf[][Tm][WBUF_t][WBUF_t], W *layer_weights, int weight_offset, int n, int m, int K, int N, int M, int w_r_offset, int w_c_offset){
+       for(int k1 = 0; k1 < K; k1++){
+           for(int k2 = 0; k2 < K; k2++){
+                for(int j = 0; j < Tn && j < N - n; j++){
+                    for(int i = 0; i < Tm && i < M - m; i++){
+#pragma HLS PIPELINE
+                        buf[j][i][k1+w_r_offset][k2+w_c_offset] = *(layer_weights + weight_offset + (i+m)*N*K*K + (j+n)*K*K + k1*K + k2);
+                   }
+                }
+            }
+        }
+    }
     // Convolution computation kernel
     void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int w_r_offset, int w_c_offset, int r_offset, int c_offset){
         for(int i=0; i<K; i++){
@@ -323,7 +335,7 @@ public:
     }
 #endif
     
-#if _ACC_MODE_
+//#if _ACC_MODE_
    void conv_core_acc( 
         data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
         data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
@@ -394,7 +406,7 @@ public:
             }
         }
     }
-#endif
+//#endif
 
 
 };

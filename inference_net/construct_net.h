@@ -21,7 +21,9 @@ void conv_pool_layer(
     data_type_w w_buf_0[][Tm][WBUF_t][WBUF_t],
     data_type_w b_buf_0[],
     data_type_w out_buf_0[][OBUF_t][OBUF_t],
-    data_type_w out_buf_1[][OBUF_t][OBUF_t]){
+    data_type_w out_buf_1[][OBUF_t][OBUF_t],
+    int w_r_offset,
+    int w_c_offset){
 
     int acc_call_rounds  = 0;
     for(int r = 0; r < layer_param[5]&&r<IBUF_t; r += IBUF_t) {
@@ -35,10 +37,32 @@ void conv_pool_layer(
                     conv_param[2] = r;
                     conv_param[3] = c;
 
-                    convAcc1.b_buf_load(b_buf_0, conv_bias_mem_port, layer_param[11], m);
-                    convAcc1.w_buf_load(w_buf_0, conv_weight_mem_port, layer_param[10], n, m, layer_param[1], layer_param[0], layer_param[2]);
                     convAcc1.in_buf_load(in_buf_0, temp_out_0_1, 0, n, r, c, layer_param[7], layer_param[1], layer_param[8], layer_param[3], layer_param[4], layer_param[0]);
-
+                    convAcc1.b_buf_load(b_buf_0, conv_bias_mem_port, layer_param[11], m);
+#if _LAYER_MODE_
+                    convAcc1.w_buf_load(w_buf_0, conv_weight_mem_port, layer_param[10], n, m, layer_param[1], layer_param[0], layer_param[2]);
+#endif
+#if _ACC_MODE_
+                    w_c_offset += layer_param[1]*(n/Tn);
+                    w_r_offset += layer_param[1]*(m/Tm);
+                    convAcc1.w_buf_t_load(w_buf_0, conv_weight_mem_port, layer_param[10], n, m, layer_param[1], layer_param[0], layer_param[2], w_r_offset, w_c_offset);
+                    ofstream w_buf_t;
+                    w_buf_t.open("w_buf_data.txt", ios::app);
+                    w_buf_t <<"w_buf_data: "<< endl;
+                    for (int i = 0; i < 8; i++) {
+                        for (int j = 0; j < 32; j++) {
+                            for(int k = 0; k < 32; k++){
+                                for(int l = 0; l < 32; l++){
+                                    w_buf_t << w_buf_0[i][j][k][l] << " ";
+                                }
+                                w_buf_t << endl;
+                            }
+                            w_buf_t << endl;
+                        }
+                        w_buf_t << endl;
+                    }
+                    w_buf_t.close();
+#endif
 #if _C_DEBUG_MODE_
                     ofstream conv_out;
                     conv_out.open("in_buf_data.txt", ios::app);
@@ -146,7 +170,7 @@ void conv_pool_layer(
     }
 
 }
-
+/*
 void   inference_net(
    data_type_w *conv_weight_port,
    data_type_w *fc_weight_port,
@@ -205,6 +229,6 @@ void   inference_net(
    cout << "..........................................................." << endl;
 #endif
 #endif
-}
+}*/
 
 #endif //_CONSTRUCT_NET_H_

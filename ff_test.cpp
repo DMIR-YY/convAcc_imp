@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <time.h>
 #include <malloc.h>
+#include <ap_fixed.h>
 #include "inference_net/config.h"
 #include "inference_net/construct_net.h"
 #include "inference_net/image_converter.h"
@@ -307,7 +308,8 @@ int pool_engine_param_in_2[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 10/*in
 int pool_engine_param_in_3[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 1/*in_size*/, 1/*in_size*/, 0/*P*/, 0, 0, 0, 0, 0, 0, 0, 0};
 int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1, 1, 0, 0, 0, 0, 0, 1, 0};
 //    inference_net( dir_control_1, conv_param_1, pool_param_1, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
-
+int w_r_offset = 0;
+int w_c_offset = 0;
     //conv_1
     conv_pool_layer(
         conv_param_1,
@@ -322,9 +324,14 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
         w_buf_0,
         b_buf_0,
         out_buf_0,
-        out_buf_1);
+        out_buf_1,
+        w_r_offset,
+        w_c_offset);
 
     //conv_2
+#if _ACC_MODE_
+    w_c_offset = 5;
+#endif
     conv_pool_layer(
         conv_param_2,
         pool_param_2,
@@ -338,9 +345,14 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
         w_buf_0,
         b_buf_0,
         out_buf_0,
-        out_buf_1);
+        out_buf_1,
+        w_r_offset,
+        w_c_offset);
 
     //fc_1
+#if _ACC_MODE_
+    w_c_offset = 10;
+#endif
     conv_pool_layer(
         conv_param_3,
         pool_param_3,
@@ -354,7 +366,9 @@ int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1,
         w_buf_0,
         b_buf_0,
         out_buf_0,
-        out_buf_1);
+        out_buf_1,
+        w_r_offset,
+        w_c_offset);
 
 /* Bram interfaced inference_net
 inference_net( dir_control_1, conv_param_1, pool_param_1, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
