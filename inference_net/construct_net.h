@@ -156,7 +156,6 @@ void   inference_net(
    data_type_o   fc_3_out_a[10*1*1],
    data_type_o   temp_out_0_1[4704],
    data_type_o   temp_out_1_1[4704]){
-
 #if _HLS_MODE_
 #pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
 #pragma HLS INTERFACE m_axi depth=2550 port=conv_weight_port
@@ -166,41 +165,27 @@ void   inference_net(
 #pragma HLS INTERFACE m_axi depth=4704 port=fc_bias_port
 #pragma HLS INTERFACE m_axi depth=4704 port=fc_3_out_a
 #endif
-
 #if _C_DEBUG_MODE_
 #if _KERNEL_DEBUG_
    cout << "starting forward network process..........................." << endl;
    cout << "..........................................................." << endl;
 #endif
 #endif
-
 #if _LAYER_MODE_
-
    int shift_weight_conv1_1 = 0;
-
    int shift_weight_conv2_1 = 150;
-
    int shift_weight_fc1 = 0;
    int shift_bias_fc1 = 0;
-
-
    conv_layer_new(1, 5, 6, 28, 28, 28, 28, 1, 2, 1, conv_weight_port, shift_weight_conv1_1, 0, 0,  temp_out_0_1,  temp_out_1_1);
-
    max_pool_layer_new(28, 28, 6, 2, 14, 14, 2, 0, 1,  temp_out_1_1,  temp_out_0_1);
-
    conv_layer_new(6, 5, 16, 14, 14, 10, 10, 1, 0, 1, conv_weight_port, shift_weight_conv2_1, 0, 0,  temp_out_0_1,  temp_out_1_1);
-
    max_pool_layer_new(10, 10, 16, 2, 5, 5, 2, 0, 1,  temp_out_1_1,  temp_out_0_1);
-
    conv_layer_new(16, 5, 10, 5, 5, 1, 1, 5, 0, 1, fc_weight_port, fc_bias_port, shift_weight_fc1, shift_bias_fc1, 0, 0,  temp_out_0_1,  temp_out_1_1);
-
    for (int i = 0; i < 10; i++) {
       fc_3_out_a[i+0] = temp_out_1_1[i/1];
       
    }
-
 #endif
-
 #if _C_DEBUG_MODE_
 #if _KERNEL_DEBUG_
    cout << "Finished forward network process .........................." << endl;
