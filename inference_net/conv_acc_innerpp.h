@@ -189,8 +189,8 @@ public:
         T in_buf_0[Tn][(Tr-1)*S_max + K_max][(Tc-1)*S_max + K_max];
         W w_buf_1[Tn][Tm][K_max][K_max];
         W w_buf_0[Tn][Tm][K_max][K_max];
-        G out_buf_1[Tm][Tr][Tc];
         G out_buf_0[Tm][Tr][Tc];
+        G out_buf_1[Tm][Tr][Tc];
 
         /***************Ptr and buffer initialization******************************/
         bool in_buf_0_empty = 1;
@@ -211,8 +211,8 @@ public:
 #pragma HLS ARRAY_PARTITION variable=w_buf_1 complete dim=2
 #pragma HLS ARRAY_PARTITION variable=w_buf_0 complete dim=1
 #pragma HLS ARRAY_PARTITION variable=w_buf_0 complete dim=2
-#pragma HLS ARRAY_PARTITION variable=out_buf_1 complete dim=1
 #pragma HLS ARRAY_PARTITION variable=out_buf_0 complete dim=1
+#pragma HLS ARRAY_PARTITION variable=out_buf_1 complete dim=1
 #endif
 
 #if _C_DEBUG_MODE_
@@ -349,6 +349,7 @@ public:
         data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
         data_type_w b_buf_0[Tm],
         data_type_w out_buf_0[Tm][OBUF_t][OBUF_t],
+        data_type_w out_buf_1[Tm][OBUF_t][OBUF_t],
         int param1[16],
         int param2[16]) {
     
@@ -364,8 +365,8 @@ public:
         int c_offset = param1[6];
 
         // in & out buffer selection, here only in buffer is changed
-        int in_buf_flag = param[11];
-        int out_buf_flag= param[12];
+        int in_buf_flag = param1[11];
+        int out_buf_flag= param1[12];
 
         // conv computation core 
         if (in_buf_flag == 0) {

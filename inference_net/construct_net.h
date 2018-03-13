@@ -113,7 +113,7 @@ void conv_pool_layer(
                             cout << "}; " << endl;
 
                             // Accelerator core execution
-                            conv_core_syn(in_buf_0, w_buf_0, b_buf_0, out_buf_0, conv_param, pool_param);
+                            conv_core_syn(in_buf_0, in_buf_1, w_buf_0, b_buf_0, out_buf_0, out_buf_1, conv_param, pool_param);
                             cout << "acc call round = " << acc_call_rounds << endl;
                             for (int i = 0; i < 32; i++) {
                                 for (int j = 0; j < 32; j++) {
