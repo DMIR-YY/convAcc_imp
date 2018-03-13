@@ -46,8 +46,8 @@ int main() {
    unsigned int out_size_1_1 = (20480) * sizeof(data_type_o);
 
 //    data_type_w in_buf_0[8][15*5+11][15*5 + 11];
-    data_type_w in_buf_0[16][128][128];
-    data_type_w in_buf_1[8][15*5+11][15*5 + 11];
+    data_type_w in_buf_0[8][32][32];
+    data_type_w in_buf_1[8][32][32];
     data_type_w w_buf_0[8][32][32][32];
     data_type_w w_buf_1[8][32][11][11];
     data_type_w b_buf_0[32];
@@ -349,6 +349,7 @@ int w_c_offset = 0;
         temp_out_0_1,
         temp_out_1_1,
         in_buf_0,
+        in_buf_1,
         w_buf_0,
         b_buf_0,
         out_buf_0,

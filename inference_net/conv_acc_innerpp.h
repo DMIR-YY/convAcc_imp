@@ -368,7 +368,7 @@ public:
         int in_buf_flag = param1[11];
         int out_buf_flag= param1[12];
 
-        // conv computation core 
+        // conv computation core, manually instance double buffering
         if (in_buf_flag == 0) {
             conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset);
         } else {

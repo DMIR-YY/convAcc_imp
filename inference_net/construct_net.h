@@ -18,6 +18,7 @@ void conv_pool_layer(
     data_type_w *temp_out_0_1,
     data_type_w *temp_out_1_1,
     data_type_w in_buf_0[][IBUF_t][IBUF_t],
+    data_type_w in_buf_1[][IBUF_t][IBUF_t],
     data_type_w w_buf_0[][Tm][WBUF_t][WBUF_t],
     data_type_w b_buf_0[],
     data_type_w out_buf_0[][OBUF_t][OBUF_t],
