@@ -2,7 +2,7 @@
 ## Please DO NOT edit it.
 ## Copyright (C) 2015 Xilinx Inc. All rights reserved.
 ############################################################
-open_project convAcc
+open_project convAcc_fixed
 
 set_top conv_core_syn
 

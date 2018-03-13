@@ -3,10 +3,15 @@
 
 
 //define data type
+/*
+typedef ap_fixed<16,8> data_type;
+typedef ap_fixed<16,8> data_type_w;
+typedef ap_fixed<16,8> data_type_o;
+*/
+
 typedef float data_type;
 typedef float data_type_w;
 typedef float data_type_o;
-
 // C++ compilation debug mode
 //#define _LAYER_MODE_ 1
 
