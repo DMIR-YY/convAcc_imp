@@ -4,7 +4,7 @@ IDIR =./inference_net
 CC=g++
 CFLAGS=-I$(IDIR)
 
-LDIR = /nfs/app/Xilinx/Vivado_HLS/2017.1/include
+LDIR = /Users/yao/work/local_lib/include
 
 ff_test:ff_test.cpp FORCE
 	$(CC) $(CFLAGS) -I$(LDIR) -O3 $< -o $@

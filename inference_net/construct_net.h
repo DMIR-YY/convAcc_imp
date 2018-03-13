@@ -118,7 +118,7 @@ void conv_pool_layer(
                             cout << "acc call round = " << acc_call_rounds << endl;
                             for (int i = 0; i < 32; i++) {
                                 for (int j = 0; j < 32; j++) {
-                                    cout << out_buf_0[0][i][j] << "  ";
+                                    cout << out_buf_1[0][i][j] << "  ";
                                 }
                                 cout << endl;
                             }

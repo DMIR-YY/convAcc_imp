@@ -365,8 +365,8 @@ public:
         int c_offset = param1[6];
 
         // in & out buffer selection, here only in buffer is changed
-        int in_buf_flag = param1[11];
-        int out_buf_flag= param1[12];
+        int in_buf_flag = param1[12];
+        int out_buf_flag= param1[13];
 
         // conv computation core, manually instance double buffering
         if (in_buf_flag == 0) {
