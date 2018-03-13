@@ -96,29 +96,37 @@ void conv_core_syn(data_type_w in_buf_0[8][128][128],
 */
 
 void conv_core_syn(data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
+                   data_type_w in_buf_1[Tn][IBUF_t][IBUF_t],
                    data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
                    data_type_w b_buf_0[Tm],
                    data_type_w out_buf_0[Tm][OBUF_t][OBUF_t],
+                   data_type_w out_buf_1[Tm][OBUF_t][OBUF_t],
                    int conv_param[16],
                    int pool_param[16]) {
 
 #pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
 
 #pragma HLS ARRAY_PARTITION variable=in_buf_0  complete dim=1
+#pragma HLS ARRAY_PARTITION variable=in_buf_1  complete dim=1
 #pragma HLS ARRAY_PARTITION variable=w_buf_0   complete dim=1
 #pragma HLS ARRAY_PARTITION variable=w_buf_0   complete dim=2
 #pragma HLS ARRAY_PARTITION variable=out_buf_0 complete dim=1
+#pragma HLS ARRAY_PARTITION variable=out_buf_1 complete dim=1
 
 #pragma HLS RESOURCE variable=in_buf_0  core=RAM_1P_BRAM
+#pragma HLS RESOURCE variable=in_buf_1  core=RAM_1P_BRAM
 #pragma HLS RESOURCE variable=w_buf_0   core=RAM_1P_BRAM
 #pragma HLS RESOURCE variable=out_buf_0 core=RAM_1P_BRAM
+#pragma HLS RESOURCE variable=out_buf_1 core=RAM_1P_BRAM
 #pragma HLS RESOURCE variable=conv_param  core=RAM_1P_BRAM
 #pragma HLS RESOURCE variable=pool_param  core=RAM_1P_BRAM
 
 #pragma HLS INTERFACE bram port=in_buf_0
+#pragma HLS INTERFACE bram port=in_buf_1
 #pragma HLS INTERFACE bram port=w_buf_0
 #pragma HLS INTERFACE bram port=b_buf_0
 #pragma HLS INTERFACE bram port=out_buf_0
+#pragma HLS INTERFACE bram port=out_buf_1
 #pragma HLS INTERFACE bram port=conv_param
 #pragma HLS INTERFACE bram port=pool_param
 
