@@ -345,6 +345,7 @@ public:
 //#if _ACC_MODE_
    void conv_core_acc( 
         data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
+        data_type_w in_buf_1[Tn][IBUF_t][IBUF_t],
         data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t],
         data_type_w b_buf_0[Tm],
         data_type_w out_buf_0[Tm][OBUF_t][OBUF_t],
@@ -362,7 +363,18 @@ public:
         int r_offset = param1[5];
         int c_offset = param1[6];
 
-        conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset);
+        // in & out buffer selection, here only in buffer is changed
+        int in_buf_flag = param[11];
+        int out_buf_flag= param[12];
+
+        // conv computation core 
+        if (in_buf_flag == 0) {
+            conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset);
+        } else {
+            conv_engine(in_buf_1, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset);
+        }
+
+
         if (param1[1] >= param1[7] - Tn) {
             for(int j =0; j < Tr; j++) {
                 for(int k=0; k < Tc; k++) {
@@ -407,7 +419,11 @@ public:
                 for(int k=0; k < c_out; k++) {
 #pragma HLS PIPELINE
                     for(int i=0; i < Tm; i++) {
-                        out_buf_0[i][j+r_offset_1][k+c_offset_1] = out_buf_pool_tmp[i][j][k];
+                        if (out_buf_flag == 0){
+                            out_buf_0[i][j+r_offset_1][k+c_offset_1] = out_buf_pool_tmp[i][j][k];
+                        } else {
+                            out_buf_1[i][j+r_offset_1][k+c_offset_1] = out_buf_pool_tmp[i][j][k];
+                        }
                     }
                 }
             }

@@ -151,7 +151,7 @@ void conv_core_syn(data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
         b_buf_0_tmp[i] = b_buf_0[i];
     }
 
-    convAcc1.conv_core_acc(in_buf_0, w_buf_0, b_buf_0_tmp, out_buf_0, param1, param2);
+    convAcc1.conv_core_acc(in_buf_0, in_buf_1, w_buf_0, b_buf_0_tmp, out_buf_0, out_buf_1, param1, param2);
 }
 
 
