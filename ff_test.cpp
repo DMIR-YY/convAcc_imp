@@ -359,7 +359,7 @@ int w_c_offset = 0;
         out_buf_1,
         w_r_offset,
         w_c_offset);
-
+/*
     //conv_2
     conv_pool_layer(
         conv_param_2,
@@ -397,7 +397,7 @@ int w_c_offset = 0;
         out_buf_1,
         w_r_offset,
         w_c_offset);
-
+*/
 /* Bram interfaced inference_net
 inference_net( dir_control_1, conv_param_1, pool_param_1, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
 inference_net( dir_control_1, conv_param_2, pool_param_2, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
