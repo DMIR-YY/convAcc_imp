@@ -2,7 +2,7 @@
 ## Please DO NOT edit it.
 ## Copyright (C) 2015 Xilinx Inc. All rights reserved.
 ############################################################
-open_project convAcc_fixed
+open_project convAcc_dbuf
 
 set_top conv_core_syn
 
@@ -51,6 +51,6 @@ csynth_design
 
 #export_design -flow syn -rtl verilog -format ip_catalog
 
-cosim_design -argv {net_weights.txt, 3.bmp, val.txt, net_mean.txt} -trace_level none -rtl verilog -tool xsim
+#cosim_design -argv {net_weights.txt, 3.bmp, val.txt, net_mean.txt} -trace_level none -rtl verilog -tool xsim
 
 exit

@@ -24,7 +24,7 @@ typedef float data_type_o;
 
 
 
-//#define _HLS_MODE_  1
+#define _HLS_MODE_  1
 
 //#define _BATCH_MODE_ 1
 #ifdef _BATCH_MODE_

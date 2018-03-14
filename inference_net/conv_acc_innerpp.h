@@ -104,11 +104,12 @@ public:
         }
     }
     // Convolution computation kernel
-    void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc], int S, int n, int r, int c, int K, int w_r_offset, int w_c_offset, int r_offset, int c_offset){
+    void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc],
+                     int S, int n, int r, int c, int K, int w_r_offset, int w_c_offset, int r_offset, int c_offset, int R, int C){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
-                for(int tr=0; tr<Tr; tr++){
-                    for(int tc=0; tc<Tc; tc++){
+                for(int tr=0; tr<Tr && tr+r < R; tr++){
+                    for(int tc=0; tc<Tc && tc+c < C; tc++){
 #pragma HLS PIPELINE
                         for(int tm = 0; tm < Tm; tm++){
 #pragma HLS UNROLL
@@ -369,13 +370,14 @@ public:
 
         // conv computation core, manually instance double buffering
         if (in_buf_flag == 0) {
-            conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset);
+            conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset, param1[14], param1[15]);
         } else {
-            conv_engine(in_buf_1, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset);
+            conv_engine(in_buf_1, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset, param1[14], param1[15]);
         }
 
 
         if (param1[1] >= param1[7] - Tn) {
+
             for(int j =0; j < Tr; j++) {
                 for(int k=0; k < Tc; k++) {
 #pragma HLS PIPELINE
