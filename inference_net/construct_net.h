@@ -36,8 +36,11 @@ void conv_pool_layer(
                     conv_param[1] = n;
                     conv_param[2] = r;
                     conv_param[3] = c;
-
-                    convAcc1.in_buf_load(in_buf_0, temp_out_0_1, 0, n, r, c, layer_param[7], layer_param[1], layer_param[8], layer_param[3], layer_param[4], layer_param[0]);
+                    if(conv_param[12] == 0){
+                        convAcc1.in_buf_load(in_buf_0, temp_out_0_1, 0, n, r, c, layer_param[7], layer_param[1], layer_param[8], layer_param[3], layer_param[4], layer_param[0]);
+                    }else{
+                        convAcc1.in_buf_load(in_buf_1, temp_out_0_1, 0, n, r, c, layer_param[7], layer_param[1], layer_param[8], layer_param[3], layer_param[4], layer_param[0]);
+                    }
                     convAcc1.b_buf_load(b_buf_0, conv_bias_mem_port, layer_param[11], m);
 #if _LAYER_MODE_
                     convAcc1.w_buf_load(w_buf_0, conv_weight_mem_port, layer_param[10], n, m, layer_param[1], layer_param[0], layer_param[2]);
@@ -56,41 +59,6 @@ void conv_pool_layer(
                         conv_out << endl;
                     }
                     conv_out.close();
-
-                    /*cout << "conv acc round : "  << acc_call_rounds << endl;
-                    cout << "b buf 0 data :" << endl;
-                    for (int i =0; i<Tm && i<layer_param[2]; i++) {
-                        cout << b_buf_0[i] << "  ";
-                    }
-                    cout << endl;
-                    cout << endl;
-                    cout<< "w buf 0 data :" << endl;
-                    for(int a=0; a<Tn && a<layer_param[0]; a++) {
-                        for (int i = 0; i < Tm && i < layer_param[2]; i++) {
-                            for (int j = 0; j < layer_param[1]; j++) {
-                                for (int k = 0; k < layer_param[1]; k++) {
-                                    cout << w_buf_0[a][i][j][k] << "  ";
-                                }
-                                cout << endl;
-                            }
-                            cout << endl;
-                        }
-                        cout << endl;
-                    }
-                    cout << endl;
-                    cout << endl;
-                    cout << "in buf 0 data :" << endl;
-                    for (int i =0; i<layer_param[0] && i<Tn; i++){
-                        for (int j=0; j<layer_param[3] && j<IBUF_t; j++){
-                            for(int k=0; k<layer_param[4] && k<IBUF_t; k++) {
-                                cout << in_buf_0[i][j][k] << " ";
-                            }
-                            cout << endl;
-                        }
-                        cout << endl;
-                    }
-                    cout << endl;
-                    cout << endl;*/
 #endif
 
 #if _C_DEBUG_MODE_
@@ -116,20 +84,16 @@ void conv_pool_layer(
                             // Accelerator core execution
                             conv_core_syn(in_buf_0, in_buf_1, w_buf_0, b_buf_0, out_buf_0, out_buf_1, conv_param, pool_param);
                             cout << "acc call round = " << acc_call_rounds << endl;
-                            for (int i = 0; i < 32; i++) {
-                                for (int j = 0; j < 32; j++) {
-                                    cout << out_buf_1[0][i][j] << "  ";
-                                }
-                                cout << endl;
-                            }
-                            cout << endl;
                         }
                     }
-                    //pool_core_syn(out_buf_0, out_buf_1, pool_engine_param_in);
 
 #if _C_DEBUG_MODE_
                     // read results out
-                    maxPoolAcc1.output_res(out_buf_0, temp_out_1_1, m, r, c, layer_param_1[2], layer_param_1[4], layer_param_1[5], 1);
+                    if(conv_param[13] == 0){
+                        maxPoolAcc1.output_res(out_buf_0, temp_out_1_1, m, r, c, layer_param_1[2], layer_param_1[4], layer_param_1[5], 1);
+                    }else{
+                        maxPoolAcc1.output_res(out_buf_1, temp_out_1_1, m, r, c, layer_param_1[2], layer_param_1[4], layer_param_1[5], 1);
+                    }
                     conv_out.open("conv_pool_buf_data.txt", ios::app);
                     conv_out <<"conv_pool output: "<< endl;
                     for (int i = 0; i < layer_param[2]; i++) {

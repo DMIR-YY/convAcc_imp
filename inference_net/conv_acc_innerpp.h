@@ -342,7 +342,6 @@ public:
     }
 #endif
     
-//#if _ACC_MODE_
    void conv_core_acc( 
         data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
         data_type_w in_buf_1[Tn][IBUF_t][IBUF_t],
@@ -392,22 +391,6 @@ public:
 
             pool_engine(out_buf_tmp, out_buf_pool_tmp, param2[0], param2[1], param2[2], param2[3], param2[4], param2[5], param2[6], TR, TC);
 
-#if _C_DEBUG_MODE_
-            ofstream conv_out;
-            conv_out.open("pool_buf_data.txt", ios::app);
-            conv_out <<"pool output: "<< endl;
-            for (int i = 0; i < 16; i++) {
-                for (int j = 0; j < 5; j++) {
-                    for(int k = 0; k < 5; k++){
-                        conv_out << out_buf_pool_tmp[i][j][k] << " ";
-                    }
-                    conv_out << endl;
-                }
-                conv_out << endl;
-            }
-            conv_out.close();
-#endif
-
             int r_offset_1=0;
             int c_offset_1=0;
             //output_size = (input_size + 2 * pad - kernel_size) / stride + 1
@@ -430,8 +413,6 @@ public:
             }
         }
     }
-//#endif
-
 
 };
 #endif

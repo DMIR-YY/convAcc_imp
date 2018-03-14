@@ -304,7 +304,7 @@ int pool_param_2[16] = {10, 10, 16, 2, 5, 5, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
 int conv_param_3[16] = {16, 5, 10, 5, 5, 1, 1, 5, 0, 1, 0, 0, 0, 0, 1, 1};
 int pool_param_3[16] = {10, 10, 10, 2, 1, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
 
-int conv_engine_param_in_1[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1/*N*/, 1, 0, 0, 0, 1, 1, 1, 0};
+int conv_engine_param_in_1[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 1/*N*/, 1, 0, 0, 0, 0, 0, 1, 0};
 int conv_engine_param_in_2[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 6/*N*/, 1, 0, 0, 0, 0, 0, 1, 0};
 int pool_engine_param_in_1[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 28/*in_size*/, 28/*in_size*/, 0/*P*/, 16, 0, 0, 0, 0, 0, 0, 0};
 int pool_engine_param_in_2[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 10/*in_size*/, 10/*in_size*/, 0/*P*/, 16, 0, 0, 0, 0, 0, 0, 0};
@@ -360,7 +360,6 @@ int w_c_offset = 0;
         w_r_offset,
         w_c_offset);
 
-    /*
     //conv_2
     conv_pool_layer(
         conv_param_2,
@@ -372,6 +371,7 @@ int w_c_offset = 0;
         temp_out_1_1,
         temp_out_0_1,
         in_buf_0,
+        in_buf_1,
         w_buf_0,
         b_buf_0,
         out_buf_0,
@@ -390,13 +390,14 @@ int w_c_offset = 0;
         temp_out_0_1,
         temp_out_1_1,
         in_buf_0,
+        in_buf_1,
         w_buf_0,
         b_buf_0,
         out_buf_0,
         out_buf_1,
         w_r_offset,
         w_c_offset);
-*/
+
 /* Bram interfaced inference_net
 inference_net( dir_control_1, conv_param_1, pool_param_1, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
 inference_net( dir_control_1, conv_param_2, pool_param_2, conv_weight_mem_port, conv_bias_mem_port, temp_out_0_1, temp_out_1_1);
