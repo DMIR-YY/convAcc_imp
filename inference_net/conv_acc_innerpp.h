@@ -105,17 +105,17 @@ public:
     }
     // Convolution computation kernel
     void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc],
-                     int S, int n, int r, int c, int K, int w_r_offset, int w_c_offset, int r_offset, int c_offset, int R, int C){
+                     int S, int n, int r, int c, int K, int w_r_offset, int w_c_offset, int r_offset, int c_offset, int conv_flag, int C){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
-                for(int tr=0; tr<Tr; tr++){
-                    for(int tc=0; tc<Tc; tc++){
+                for(int tr=0; tr < (conv_flag ? Tr : 1); tr++){
+                    for(int tc=0; tc < (conv_flag ? Tc : 1); tc++){
 #pragma HLS PIPELINE
                         for(int tm = 0; tm < Tm; tm++){
 #pragma HLS UNROLL
                             for(int tn=0; tn<Tn; tn++){
 #pragma HLS UNROLL
-                                if(i==0&&j==0&&tn==0&&n==0) 
+                                if(i==0&&j==0&&tn==0&&n==0)
                                     out_buf[tm][tr][tc] = b_buf[tm] + w_buf[tn][tm][i + w_r_offset][j + w_c_offset] * in_buf[tn][S*(tr)+i + r_offset][S*(tc)+j + c_offset];
                                 else
                                     out_buf[tm][tr][tc] = out_buf[tm][tr][tc] + w_buf[tn][tm][i + w_r_offset][j + w_c_offset] * in_buf[tn][S*(tr) + i + r_offset][S*(tc)+j + c_offset];
@@ -142,7 +142,6 @@ public:
             }
         }
     }
-
 
     // Ouput out_buf data to output interface
     void output_res(G out_buf[][OBUF_t][OBUF_t], G *out_data_1, int out_offset, int n, int m, int r, int c, int N, int M, int R_OUT, int C_OUT, bool act){
@@ -370,9 +369,11 @@ public:
 
         // conv computation core, manually instance double buffering
         if (in_buf_flag == 0) {
-            conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset, param1[14], param1[15]);
+            conv_engine(in_buf_0, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4],
+                        w_r_offset, w_c_offset, r_offset, c_offset, param1[14], param1[15]);
         } else {
-            conv_engine(in_buf_1, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4], w_r_offset, w_c_offset, r_offset, c_offset, param1[14], param1[15]);
+            conv_engine(in_buf_1, w_buf_0, b_buf_0, out_buf_tmp, param1[0], param1[1], param1[2], param1[3], param1[4],
+                        w_r_offset, w_c_offset, r_offset, c_offset, param1[14], param1[15]);
         }
 
 

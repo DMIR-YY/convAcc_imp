@@ -46,8 +46,8 @@ const int WBUF_t = 32;
 const int OBUF_t = 32;
 const int Tm = 32;
 const int Tn = 8;
-const int Tr = 32;
-const int Tc = 32;
+const int Tr = 8;
+const int Tc = 8;
 const int S_max = 5;
 const int K_max = 11;
 
