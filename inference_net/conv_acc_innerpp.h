@@ -105,11 +105,11 @@ public:
     }
     // Convolution computation kernel
     void conv_engine(T in_buf[][IBUF_t][IBUF_t], W w_buf[][Tm][WBUF_t][WBUF_t], W b_buf[], G out_buf[][Tr][Tc],
-                     int S, int n, int r, int c, int K, int w_r_offset, int w_c_offset, int r_offset, int c_offset, int conv_flag, int C){
+                     int S, int n, int r, int c, int K, int w_r_offset, int w_c_offset, int r_offset, int c_offset, int R, int C){
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
-                for(int tr=0; tr < (conv_flag ? Tr : 1); tr++){
-                    for(int tc=0; tc < (conv_flag ? Tc : 1); tc++){
+                for(int tr=0; tr < Tr; tr++){
+                    for(int tc=0; tc < Tc; tc++){
 #pragma HLS PIPELINE
                         for(int tm = 0; tm < Tm; tm++){
 #pragma HLS UNROLL
