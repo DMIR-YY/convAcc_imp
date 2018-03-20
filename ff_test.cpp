@@ -49,14 +49,14 @@ int main() {
    unsigned int out_size_1_1 = (20480) * sizeof(data_type_o);
 
 //    data_type_w in_buf_0[8][15*5+11][15*5 + 11];
-    data_type_w in_buf_0[8][32][32];
-    data_type_w in_buf_1[8][32][32];
-    data_type_w w_buf_0[8][32][32][32];
-    data_type_w w_buf_1[8][32][11][11];
-    data_type_w b_buf_0[32];
-    data_type_w b_buf_1[32];
-    data_type_w out_buf_0[32][32][32];
-    data_type_w out_buf_1[32][32][32];
+    data_type_w in_buf_0[Tn][IBUF_t][IBUF_t];
+    data_type_w in_buf_1[Tn][IBUF_t][IBUF_t];
+    data_type_w w_buf_0[Tn][Tm][WBUF_t][WBUF_t];
+    data_type_w w_buf_1[Tn][Tm][WBUF_t][WBUF_t];
+    data_type_w b_buf_0[Tm];
+    data_type_w b_buf_1[Tm];
+    data_type_w out_buf_0[Tm][OBUF_t][OBUF_t];
+    data_type_w out_buf_1[Tm][OBUF_t][OBUF_t];
 
    // assign memory space to different ports
    data_type_w *conv_weight_mem_port = (data_type_w*)malloc(conv_weight_size);
@@ -304,9 +304,9 @@ int pool_param_2[16] = {10, 10, 16, 2, 5, 5, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
 int conv_param_3[16] = {16, 5, 10, 5, 5, 1, 1, 5, 0, 1, 0, 0, 0, 0, 1, 1};
 int pool_param_3[16] = {10, 10, 10, 2, 1, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0};
 
-int conv_engine_param_in_1[16] = {1/*S*/, 0/*n*/, 0/*r*/, 32/*R*/, 5/*K*/, 28, 28, 1/*N*/, 1, 0, 0, 0, 0, 0, 1/*R_out*/, 28/*C_out*/};
-int conv_engine_param_in_2[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 6/*N*/, 1, 0, 0, 0, 0, 0, 1/*R_out*/, 10/*C_out*/};
-int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 16/*N*/, 1, 0, 0, 0, 0, 0, 0/*R_out*/, 1/*C_out*/};
+int conv_engine_param_in_1[16] = {1/*S*/, 0/*n*/, 0/*r*/, 32/*R*/, 5/*K*/, 28, 28, 1/*N*/, 1, 0, 0, 0, 0, 0, 0/*R_out*/, 28/*C_out*/};
+int conv_engine_param_in_2[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 6/*N*/, 1, 0, 0, 0, 0, 0, 0/*R_out*/, 10/*C_out*/};
+int fc_engine_param_in[16] = {5/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 5/*K*/, 28, 28, 16/*N*/, 1, 0, 0, 0, 0, 0, 1/*R_out*/, 1/*C_out*/};
 int pool_engine_param_in_1[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 28/*in_size*/, 28/*in_size*/, 0/*P*/, 0, 0, 0, 0, 0, 0, 0, 0};
 int pool_engine_param_in_2[16] = {2/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 2/*K*/, 10/*in_size*/, 10/*in_size*/, 0/*P*/, 0, 0, 0, 0, 0, 0, 0, 0};
 int pool_engine_param_in_3[16] = {1/*S*/, 0/*n*/, 0/*r*/, 0/*c*/, 1/*K*/, 1/*in_size*/, 1/*in_size*/, 0/*P*/, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -327,10 +327,10 @@ int w_c_offset = 0;
     ofstream w_buf_t;
     w_buf_t.open("w_buf_data.txt", ios::app);
     w_buf_t <<"w_buf_data: "<< endl;
-    for (int i = 0; i < 8; i++) {
-      for (int j = 0; j < 32; j++) {
-        for(int k = 0; k < 32; k++){
-          for(int l = 0; l < 32; l++){
+    for (int i = 0; i < Tn; i++) {
+      for (int j = 0; j < Tm; j++) {
+        for(int k = 0; k < WBUF_t; k++){
+          for(int l = 0; l < WBUF_t; l++){
             w_buf_t << w_buf_0[i][j][k][l] << " ";
           }
           w_buf_t << endl;

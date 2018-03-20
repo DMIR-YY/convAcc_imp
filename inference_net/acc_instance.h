@@ -146,7 +146,7 @@ void conv_core_syn(data_type_w in_buf_0[Tn][IBUF_t][IBUF_t],
         param2[i] = pool_param[i];
     }
 
-    for(int i = 0; i<32; i++){
+    for(int i = 0; i<16; i++){
 #pragma HLS PIPELINE
         b_buf_0_tmp[i] = b_buf_0[i];
     }
