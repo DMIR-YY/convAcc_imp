@@ -83,8 +83,8 @@ public:
     }
     // Ouput out_buf data to output interface
     void output_res(G out_buf[][OBUF_t][OBUF_t],G *out_data_1, int n, int r, int c, int N, int R, int C, bool act){
-        for (int j = r; j < r + OBUF_t && j < r + Tr && j < R; j++) {
-            for (int k = c; k < c + OBUF_t && k < c + Tc && k < C; k++) {
+        for (int j = r; j < OBUF_t && j < R; j++) {
+            for (int k = c; k < OBUF_t && k < C; k++) {
                 for (int i = n; i <  n + Tn && i < N; i += 1) {
 #pragma HLS PIPELINE
                         if (act) {

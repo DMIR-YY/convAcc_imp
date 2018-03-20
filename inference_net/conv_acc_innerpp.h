@@ -109,22 +109,16 @@ public:
         for(int i=0; i<K; i++){
             for(int j=0; j<K; j++){
                 for(int tr=0; tr < Tr; tr++){
-                    for(int tc=0; tc < Tc; tc++) {
+                    for(int tc=0; tc < Tc; tc++){
 #pragma HLS PIPELINE
-                        for (int tm = 0; tm < Tm; tm++) {
+                        for(int tm = 0; tm < Tm; tm++){
 #pragma HLS UNROLL
-                            for (int tn = 0; tn < Tn; tn++) {
+                            for(int tn=0; tn<Tn; tn++){
 #pragma HLS UNROLL
-                                if (i == 0 && j == 0 && tn == 0 && n == 0)
-                                    out_buf[tm][tr][tc] = b_buf[tm] +
-                                                          w_buf[tn][tm][i + w_r_offset][j + w_c_offset] *
-                                                          in_buf[tn][S * (tr) + i + r_offset][S * (tc) + j +
-                                                                                              c_offset];
+                                if(i==0&&j==0&&tn==0&&n==0)
+                                    out_buf[tm][tr][tc] = b_buf[tm] + w_buf[tn][tm][i + w_r_offset][j + w_c_offset] * in_buf[tn][S*(tr)+i + r_offset][S*(tc)+j + c_offset];
                                 else
-                                    out_buf[tm][tr][tc] = out_buf[tm][tr][tc] +
-                                                          w_buf[tn][tm][i + w_r_offset][j + w_c_offset] *
-                                                          in_buf[tn][S * (tr) + i + r_offset][S * (tc) + j +
-                                                                                              c_offset];
+                                    out_buf[tm][tr][tc] = out_buf[tm][tr][tc] + w_buf[tn][tm][i + w_r_offset][j + w_c_offset] * in_buf[tn][S*(tr) + i + r_offset][S*(tc)+j + c_offset];
                             }
                         }
                     }
@@ -394,17 +388,14 @@ public:
                 }
             }
 
-            //input size
-            int TR=((param2[2] * param2[0] + (Tr - 1) * param2[0] + param2[4])>param2[5]?(param2[5] - param2[2] * param2[0]):((Tr - 1) * param2[0] + param2[4]));
-            int TC=((param2[2] * param2[0] + (Tc - 1) * param2[0] + param2[4])>param2[6]?(param2[6] - param2[2] * param2[0]):((Tc - 1) * param2[0] + param2[4]));
-
-            pool_engine(out_buf_tmp, out_buf_pool_tmp, param2[0], param2[1], param2[2], param2[3], param2[4], param2[5], param2[6], TR, TC);
+            pool_engine(out_buf_tmp, out_buf_pool_tmp, param2[0], param2[1], param2[2], param2[3], param2[4], param2[5], param2[6], Tr, Tc);
 
             int r_offset_1=0;
             int c_offset_1=0;
             //output_size = (input_size + 2 * pad - kernel_size) / stride + 1
             int r_out = (Tr + 2 * param2[7] - param2[4]) / param2[0] + 1;
             int c_out = (Tc + 2 * param2[7] - param2[4]) / param2[0] + 1;
+            
             r_offset_1 = r_offset / Tr * r_out;
             c_offset_1 = c_offset / Tc * c_out;
 
@@ -425,4 +416,4 @@ public:
 
 };
 #endif
-    
+  
